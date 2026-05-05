@@ -1,0 +1,23 @@
+{
+  "id": "luyi-nui",
+  "displayName": "鹿弈Nui",
+  "description": "A lively chibi desktop pet based on 鹿弈Nui.",
+  "spritesheetPath": "spritesheet.webp",
+  "grid": {
+    "columns": 8,
+    "rows": 9,
+    "frameWidth": 192,
+    "frameHeight": 208
+  },
+  "animations": {
+    "idle": { "row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
+    "walk": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
+    "run": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
+    "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
+    "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8 },
+    "sleep": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
+    "wake": { "row": 6, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6 },
+    "sit": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
+    "blink": { "row": 8, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 }
+  }
+}

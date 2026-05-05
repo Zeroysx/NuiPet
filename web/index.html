@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NuiPet</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="stage" aria-label="NuiPet desktop pet">
+      <button id="pet" class="pet" type="button" aria-label="鹿弈Nui"></button>
+      <nav id="menu" class="menu" aria-label="Pet menu" hidden>
+        <button type="button" data-action="idle">Idle</button>
+        <button type="button" data-action="walk">Walk</button>
+        <button type="button" data-action="wave">Wave</button>
+        <button type="button" data-action="jump">Jump</button>
+        <button type="button" data-action="sit">Sit</button>
+        <button type="button" data-action="sleep">Sleep</button>
+        <div class="menu-row">
+          <button type="button" data-scale="-">-</button>
+          <span id="scaleLabel">100%</span>
+          <button type="button" data-scale="+">+</button>
+        </div>
+        <button id="pinToggle" type="button">Always on top</button>
+        <button id="quit" type="button">Quit</button>
+      </nav>
+    </main>
+    <script src="./main.js"></script>
+  </body>
+</html>
