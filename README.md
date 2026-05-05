@@ -23,6 +23,7 @@ Prerequisites:
 - Node.js for the small static development server.
 - Neutralinojs CLI: `npm install -g @neutralinojs/neu`.
 - This workspace can run `neu` through `scripts/neu-runner.js`, which uses `D:\environment\HuaWei\Node\node.exe` when the older default Node 14 runtime cannot start the latest CLI.
+- Neutralino runtime/client `6.7.0` or newer. Older `5.6.0` binaries crashed on this Windows/WebView2 environment during window startup.
 
 Common commands:
 
@@ -41,11 +42,13 @@ npm run neu:run
 npm run neu:build
 ```
 
+If the app starts and keeps running during a test, close it from the pet menu or Windows tray before starting another `neu run` session.
+
 `npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
 
 The frontend is intentionally framework-free. `web/main.js` renders the pet and uses Neutralino APIs when running inside the desktop shell. Browser preview falls back to `localStorage`.
 
-Neutralino window and application icon paths are stored as project-relative paths in `neutralino.config.json`; the tray icon path remains a runtime resource URL.
+Neutralino executable icons use the project-relative `applicationIcon` path. The tray icon uses a runtime resource URL from the `web` document root.
 
 ## Assets And Licensing
 

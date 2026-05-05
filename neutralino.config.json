@@ -35,7 +35,6 @@
       "minHeight": 104,
       "fullScreen": false,
       "alwaysOnTop": true,
-      "icon": "web/assets/icons/app-icon.png",
       "enableInspector": false,
       "borderless": true,
       "skipTaskbar": true,
@@ -53,7 +52,7 @@
     "resourcesPath": "/web/",
     "extensionsPath": "/extensions/",
     "clientLibrary": "/neutralino.js",
-    "binaryVersion": "5.6.0",
-    "clientVersion": "5.6.0"
+    "binaryVersion": "6.7.0",
+    "clientVersion": "6.7.0"
   }
 }
