@@ -1,6 +1,6 @@
 # NuiPet
 
-NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The first version targets Windows and focuses on a lightweight, transparent, always-on-top pet window built with Tauri v2, Rust, and plain web assets.
+NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The first version targets Windows and focuses on a lightweight, transparent, always-on-top pet window built with Neutralinojs and plain web assets.
 
 ## Current MVP
 
@@ -20,22 +20,32 @@ Do not work directly on `main`. Create a branch for every change and merge only 
 
 Prerequisites:
 
-- Rust stable toolchain.
-- Microsoft C++ Build Tools and WebView2 Runtime for Windows Tauri development.
 - Node.js for the small static development server.
-- Tauri CLI, installed either as a Cargo subcommand or npm package.
+- Neutralinojs CLI: `npm install -g @neutralinojs/neu`.
+- This workspace can run `neu` through `scripts/neu-runner.js`, which uses `D:\environment\HuaWei\Node\node.exe` when the older default Node 14 runtime cannot start the latest CLI.
 
 Common commands:
 
 ```powershell
 npm run dev:web
-cargo check --manifest-path src-tauri/Cargo.toml
-cargo tauri dev
+npm run check
+neu update
+neu run
 ```
 
-`npm run build:web` verifies that required web, pet metadata, sprite, and tray icon assets are present before Tauri packaging.
+The package scripts wrap those commands:
 
-The frontend is intentionally framework-free. `web/main.js` renders the pet and calls Tauri commands through the global Tauri API. Rust code in `src-tauri/src/lib.rs` owns the window, tray, and settings file.
+```powershell
+npm run neu:update
+npm run neu:run
+npm run neu:build
+```
+
+`npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
+
+The frontend is intentionally framework-free. `web/main.js` renders the pet and uses Neutralino APIs when running inside the desktop shell. Browser preview falls back to `localStorage`.
+
+Neutralino window and application icon paths are stored as project-relative paths in `neutralino.config.json`; the tray icon path remains a runtime resource URL.
 
 ## Assets And Licensing
 

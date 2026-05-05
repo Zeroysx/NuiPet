@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
+  "applicationId": "com.zeroysx.nuipet",
+  "version": "0.1.0",
+  "defaultMode": "window",
+  "port": 0,
+  "documentRoot": "/web/",
+  "url": "/",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
+  "dataLocation": "system",
+  "storageLocation": "system",
+  "applicationName": "NuiPet",
+  "author": "Zeroysx",
+  "description": "A lightweight desktop pet based on Luyi Nui.",
+  "applicationIcon": "web/assets/icons/app-icon.png",
+  "logging": {
+    "enabled": false,
+    "writeToLogFile": false
+  },
+  "nativeAllowList": [
+    "app.*",
+    "events.*",
+    "os.setTray",
+    "storage.*",
+    "window.*"
+  ],
+  "modes": {
+    "window": {
+      "title": "NuiPet",
+      "width": 192,
+      "height": 208,
+      "minWidth": 96,
+      "minHeight": 104,
+      "fullScreen": false,
+      "alwaysOnTop": true,
+      "icon": "web/assets/icons/app-icon.png",
+      "enableInspector": false,
+      "borderless": true,
+      "skipTaskbar": true,
+      "maximize": false,
+      "hidden": false,
+      "resizable": false,
+      "useSavedState": false,
+      "injectClientLibrary": true,
+      "exitProcessOnClose": true,
+      "transparent": true
+    }
+  },
+  "cli": {
+    "binaryName": "NuiPet",
+    "resourcesPath": "/web/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/neutralino.js",
+    "binaryVersion": "5.6.0",
+    "clientVersion": "5.6.0"
+  }
+}

@@ -4,9 +4,8 @@
   const scaleLabel = document.getElementById("scaleLabel");
   const pinToggle = document.getElementById("pinToggle");
   const quit = document.getElementById("quit");
-  const tauri = window.__TAURI__;
-  const invoke = tauri && tauri.core ? tauri.core.invoke : null;
-  const appWindow = tauri && tauri.window ? tauri.window.getCurrentWindow() : null;
+  const native = window.Neutralino || null;
+  const storageKey = "nuipet.settings";
 
   const frameWidth = 192;
   const frameHeight = 208;
@@ -25,6 +24,10 @@
   let lastPositionSave = 0;
   let dragging = false;
 
+  function isNeutralino() {
+    return Boolean(native && native.app && native.window);
+  }
+
   function clampScale(value) {
     return Math.min(3, Math.max(0.5, Math.round(value * 10) / 10));
   }
@@ -40,25 +43,45 @@
     pinToggle.textContent = settings.always_on_top ? "On top: On" : "On top: Off";
   }
 
-  async function persist(applyWindow) {
-    if (invoke) {
-      await invoke(applyWindow ? "apply_settings" : "save_settings", { settings });
+  async function applyWindow() {
+    if (!isNeutralino()) {
       return;
     }
-    localStorage.setItem("nuipet.settings", JSON.stringify(settings));
+
+    await native.window.setAlwaysOnTop(settings.always_on_top);
+    await native.window.setSize({
+      width: Math.round(frameWidth * settings.scale),
+      height: Math.round(frameHeight * settings.scale)
+    });
+
+    if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
+      await native.window.move(settings.x, settings.y);
+    }
+  }
+
+  async function persist(applyWindowSettings) {
+    if (isNeutralino() && native.storage) {
+      await native.storage.setData(storageKey, JSON.stringify(settings));
+      if (applyWindowSettings) {
+        await applyWindow();
+      }
+      return;
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(settings));
   }
 
   async function readPosition() {
-    if (!appWindow || !appWindow.outerPosition) {
+    if (!isNeutralino() || !native.window.getPosition) {
       return;
     }
 
     try {
-      const position = await appWindow.outerPosition();
+      const position = await native.window.getPosition();
       settings.x = position.x;
       settings.y = position.y;
     } catch (_error) {
-      // Position access is best effort because browser preview mode has no Tauri window.
+      // Browser preview and some window managers may not expose a position.
     }
   }
 
@@ -112,19 +135,55 @@
   }
 
   async function loadSettings() {
-    if (invoke) {
-      settings = Object.assign({}, defaults, await invoke("load_settings"));
-      return;
+    if (isNeutralino() && native.storage) {
+      try {
+        const saved = await native.storage.getData(storageKey);
+        settings = Object.assign({}, defaults, JSON.parse(saved || "{}"));
+        return;
+      } catch (_error) {
+        settings = Object.assign({}, defaults);
+        return;
+      }
     }
 
     try {
-      settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem("nuipet.settings") || "{}"));
+      settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem(storageKey) || "{}"));
     } catch (_error) {
       settings = Object.assign({}, defaults);
     }
   }
 
+  async function setupTray() {
+    if (!isNeutralino() || !native.os || !native.os.setTray) {
+      return;
+    }
+
+    await native.os.setTray({
+      icon: "/assets/icons/tray-icon.png",
+      menuItems: [
+        { id: "show", text: "Show / Hide" },
+        { id: "quit", text: "Quit" }
+      ]
+    });
+
+    native.events.on("trayMenuItemClicked", async (event) => {
+      if (event.detail.id === "quit") {
+        await native.app.exit();
+        return;
+      }
+
+      if (event.detail.id === "show") {
+        await native.window.show();
+        await native.window.focus();
+      }
+    });
+  }
+
   async function init() {
+    if (native && native.init) {
+      native.init();
+    }
+
     const response = await fetch("./assets/pets/luyi-nui/pet.json");
     petData = await response.json();
     await loadSettings();
@@ -134,6 +193,7 @@
     updateScale();
     updatePin();
     await persist(true);
+    await setupTray();
     requestAnimationFrame(renderFrame);
   }
 
@@ -149,9 +209,9 @@
 
     dragging = true;
     hideMenu();
-    if (appWindow && appWindow.startDragging) {
+    if (isNeutralino() && native.window.beginDrag) {
       try {
-        await appWindow.startDragging();
+        await native.window.beginDrag();
       } catch (_error) {
         dragging = false;
       }
@@ -194,8 +254,8 @@
   });
 
   quit.addEventListener("click", async () => {
-    if (invoke) {
-      await invoke("quit_app");
+    if (isNeutralino()) {
+      await native.app.exit();
     }
   });
 

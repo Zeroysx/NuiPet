@@ -2,12 +2,14 @@ const fs = require("fs");
 const path = require("path");
 
 const required = [
+  "neutralino.config.json",
   "web/index.html",
   "web/main.js",
   "web/styles.css",
   "web/assets/pets/luyi-nui/pet.json",
   "web/assets/pets/luyi-nui/spritesheet.webp",
-  "src-tauri/icons/icon.png"
+  "web/assets/icons/app-icon.png",
+  "web/assets/icons/tray-icon.png"
 ];
 
 const missing = required.filter((file) => !fs.existsSync(path.join(__dirname, "..", file)));
