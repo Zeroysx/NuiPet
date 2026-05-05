@@ -2,6 +2,8 @@
 
 ## 2026-05-05
 
+- Fixed high-DPI window sizing so the full pet frame is visible instead of only the head.
+- Added visible click reactions and changed drag handling so clicks are not swallowed by window dragging.
 - Switched the desktop shell plan from Tauri to Neutralinojs to avoid the Visual Studio Build Tools requirement.
 - Added Neutralino configuration, native allow-list, app icon, and tray icon assets.
 - Reworked project scripts and documentation around `neu run`, `neu build`, and browser preview checks.

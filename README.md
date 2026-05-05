@@ -9,6 +9,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The fir
 - Sprite animation from an `8x9` WebP atlas at `192x208` pixels per frame.
 - Actions for idle, walk, jump, wave, sit, sleep, and wake.
 - Right-click menu for action switching, scale changes, always-on-top, and quit.
+- Left-click reaction feedback and drag-to-move behavior.
 - System tray menu for show/hide and quit.
 - Persisted settings for action, scale, always-on-top, and last known window position.
 
@@ -43,6 +44,8 @@ npm run neu:build
 ```
 
 If the app starts and keeps running during a test, close it from the pet menu or Windows tray before starting another `neu run` session.
+
+On high-DPI Windows displays, the app sizes the native window with `devicePixelRatio` so the full `192x208` sprite frame remains visible instead of showing only the upper part of the character.
 
 `npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
 

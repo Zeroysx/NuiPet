@@ -1,5 +1,6 @@
 (function () {
   const pet = document.getElementById("pet");
+  const bubble = document.getElementById("bubble");
   const menu = document.getElementById("menu");
   const scaleLabel = document.getElementById("scaleLabel");
   const pinToggle = document.getElementById("pinToggle");
@@ -23,6 +24,8 @@
   let lastFrameAt = 0;
   let lastPositionSave = 0;
   let dragging = false;
+  let pointerStart = null;
+  let bubbleTimer = 0;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -43,16 +46,25 @@
     pinToggle.textContent = settings.always_on_top ? "On top: On" : "On top: Off";
   }
 
+  function getNativeScale() {
+    return isNeutralino() ? Math.max(1, window.devicePixelRatio || 1) : 1;
+  }
+
+  function getWindowSize() {
+    const nativeScale = getNativeScale();
+    return {
+      width: Math.ceil(frameWidth * settings.scale * nativeScale),
+      height: Math.ceil(frameHeight * settings.scale * nativeScale)
+    };
+  }
+
   async function applyWindow() {
     if (!isNeutralino()) {
       return;
     }
 
     await native.window.setAlwaysOnTop(settings.always_on_top);
-    await native.window.setSize({
-      width: Math.round(frameWidth * settings.scale),
-      height: Math.round(frameHeight * settings.scale)
-    });
+    await native.window.setSize(getWindowSize());
 
     if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
       await native.window.move(settings.x, settings.y);
@@ -105,6 +117,29 @@
     frameIndex = 0;
     lastFrameAt = 0;
     await persist(false);
+  }
+
+  function showBubble(text) {
+    window.clearTimeout(bubbleTimer);
+    bubble.textContent = text;
+    bubble.hidden = false;
+    bubbleTimer = window.setTimeout(() => {
+      bubble.hidden = true;
+    }, 1100);
+  }
+
+  function playClickFeedback() {
+    pet.classList.remove("is-clicked");
+    pet.offsetHeight;
+    pet.classList.add("is-clicked");
+  }
+
+  async function reactToClick() {
+    const reactions = ["wave", "jump", "idle"];
+    const next = reactions[(reactions.indexOf(settings.action) + 1) % reactions.length] || "wave";
+    await setAction(next);
+    playClickFeedback();
+    showBubble(next === "jump" ? "Nui!" : "Hi!");
   }
 
   function showMenu(x, y) {
@@ -207,23 +242,74 @@
       return;
     }
 
-    dragging = true;
+    pointerStart = {
+      x: event.clientX,
+      y: event.clientY,
+      screenX: event.screenX,
+      screenY: event.screenY,
+      at: Date.now()
+    };
     hideMenu();
-    if (isNeutralino() && native.window.beginDrag) {
-      try {
-        await native.window.beginDrag();
-      } catch (_error) {
-        dragging = false;
-      }
+  });
+
+  window.addEventListener("pointermove", async (event) => {
+    if (!pointerStart || dragging) {
+      return;
+    }
+
+    const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+    if (distance < 4 || !isNeutralino() || !native.window.beginDrag) {
+      return;
+    }
+
+    dragging = true;
+    try {
+      await native.window.beginDrag(pointerStart.screenX, pointerStart.screenY);
+    } catch (_error) {
+      dragging = false;
     }
   });
 
   window.addEventListener("pointerup", async () => {
+    if (!pointerStart) {
+      return;
+    }
+
+    const wasDragging = dragging;
+    pointerStart = null;
+    dragging = false;
+
+    if (wasDragging) {
+      await savePositionSoon();
+      return;
+    }
+
+    await reactToClick();
+  });
+
+  pet.addEventListener("dblclick", async (event) => {
+    event.preventDefault();
+    await setAction("jump");
+    playClickFeedback();
+    showBubble("!");
+  });
+
+  pet.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    await reactToClick();
+  });
+
+  pet.addEventListener("lostpointercapture", async () => {
     if (!dragging) {
       return;
     }
 
     dragging = false;
+    pointerStart = null;
     await savePositionSoon();
   });
 

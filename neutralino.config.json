@@ -29,10 +29,10 @@
   "modes": {
     "window": {
       "title": "NuiPet",
-      "width": 192,
-      "height": 208,
-      "minWidth": 96,
-      "minHeight": 104,
+      "width": 384,
+      "height": 416,
+      "minWidth": 192,
+      "minHeight": 208,
       "fullScreen": false,
       "alwaysOnTop": true,
       "enableInspector": false,

@@ -50,6 +50,30 @@ button {
   cursor: grabbing;
 }
 
+.pet.is-clicked {
+  animation: pet-pop 180ms ease-out;
+}
+
+.bubble {
+  position: fixed;
+  left: 10px;
+  top: 8px;
+  max-width: 164px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(23, 29, 38, 0.9);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.25;
+  pointer-events: none;
+  transform: translateY(-2px);
+}
+
+.bubble[hidden] {
+  display: none;
+}
+
 .menu {
   position: fixed;
   left: 8px;
@@ -110,4 +134,16 @@ button {
 #pinToggle.is-active {
   border-color: rgba(255, 202, 58, 0.7);
   color: var(--menu-accent);
+}
+
+@keyframes pet-pop {
+  0% {
+    transform: scale(var(--scale));
+  }
+  45% {
+    transform: scale(calc(var(--scale) * 1.06));
+  }
+  100% {
+    transform: scale(var(--scale));
+  }
 }
