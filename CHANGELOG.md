@@ -1,7 +1,22 @@
 # Changelog
 
+## 2026-05-06
+
+- Documented v0.2.0 animation trigger conditions in the README.
+- Added the v0.2.1 bug-fix plan for occasional pet disappearance and context-menu bottom clipping.
+- Expanded the 鹿弈Nui atlas metadata to `8x14` with new idle micro-action rows for breathing, looking around, stretching, sitting, and blinking.
+- Added animation groups and categorized Chinese bubble text for click, double-click, drag, idle, and menu interactions.
+- Made the pet renderer read frame and atlas geometry from `pet.json` instead of hard-coding the old `8x9` spritesheet size.
+- Added automatic idle micro-action scheduling that respects drag and menu interaction priority.
+- Added richer visual-only interaction feedback for clicking, double-clicking, dragging, dropping, and bubble display.
+- Updated package and Neutralino metadata for `v0.2.0` development.
+- Ignored local `.codex-temp/` QA artifacts created during visual asset review.
+
 ## 2026-05-05
 
+- Fixed the garbled 鹿弈Nui name in the closed-source distribution documentation.
+- Documented the closed-source distribution policy and Neutralinojs license notice obligations.
+- Rebuilt and published the first GitHub Release package for `v0.1.0`.
 - Refined the `v0.1.0` release note technical stack heading.
 - Corrected the BUG feedback email in the `v0.1.0` release notes.
 - Added the BUG feedback email to the `v0.1.0` release notes.

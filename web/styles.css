@@ -3,6 +3,8 @@
   --frame-height: 208px;
   --scale: 1;
   --facing: 1;
+  --atlas-width: 1536px;
+  --atlas-height: 1872px;
   --menu-bg: rgba(23, 29, 38, 0.94);
   --menu-border: rgba(255, 255, 255, 0.18);
   --menu-text: #f7fbff;
@@ -39,7 +41,7 @@ button {
   background-color: transparent;
   background-image: url("./assets/pets/luyi-nui/spritesheet.webp");
   background-repeat: no-repeat;
-  background-size: 1536px 1872px;
+  background-size: var(--atlas-width) var(--atlas-height);
   image-rendering: pixelated;
   transform: scaleX(var(--facing)) scale(var(--scale));
   transform-origin: center center;
@@ -53,6 +55,19 @@ button {
 
 .pet.is-clicked {
   animation: pet-pop 180ms ease-out;
+}
+
+.pet.is-double-clicked {
+  animation: pet-hop 260ms ease-out;
+}
+
+.pet.is-dragging {
+  cursor: grabbing;
+  filter: saturate(1.08);
+}
+
+.pet.is-dropped {
+  animation: pet-drop 220ms ease-out;
 }
 
 .bubble {
@@ -69,6 +84,10 @@ button {
   line-height: 1.25;
   pointer-events: none;
   transform: translateY(-2px);
+}
+
+.bubble.is-visible {
+  animation: bubble-in 150ms ease-out;
 }
 
 .bubble[hidden] {
@@ -146,5 +165,40 @@ button {
   }
   100% {
     transform: scaleX(var(--facing)) scale(var(--scale));
+  }
+}
+
+@keyframes pet-hop {
+  0% {
+    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+  }
+  42% {
+    transform: scaleX(var(--facing)) translateY(-8px) scale(calc(var(--scale) * 1.08));
+  }
+  100% {
+    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+  }
+}
+
+@keyframes pet-drop {
+  0% {
+    transform: scaleX(var(--facing)) translateY(-2px) scale(var(--scale));
+  }
+  45% {
+    transform: scaleX(var(--facing)) translateY(2px) scale(calc(var(--scale) * 0.96));
+  }
+  100% {
+    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+  }
+}
+
+@keyframes bubble-in {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1);
   }
 }
