@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Localized in-app and tray menu labels to Chinese.
 - Made animation startup and menu action switching independent from Neutralino persistence/window API success.
 - Fixed high-DPI window sizing so the full pet frame is visible instead of only the head.
 - Added visible click reactions and changed drag handling so clicks are not swallowed by window dragging.

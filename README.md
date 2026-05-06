@@ -9,6 +9,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The fir
 - Sprite animation from an `8x9` WebP atlas at `192x208` pixels per frame.
 - Actions for idle, walk, jump, wave, sit, sleep, and wake.
 - Right-click menu for action switching, scale changes, always-on-top, and quit.
+- The in-app and tray menus use Chinese labels for the target desktop pet experience.
 - Left-click reaction feedback and drag-to-move behavior.
 - Animation and menu actions are resilient to Neutralino storage/window API failures, so native persistence problems do not freeze the pet on the first frame.
 - System tray menu for show/hide and quit.

@@ -44,7 +44,7 @@
 
   function updatePin() {
     pinToggle.classList.toggle("is-active", settings.always_on_top);
-    pinToggle.textContent = settings.always_on_top ? "On top: On" : "On top: Off";
+    pinToggle.textContent = settings.always_on_top ? "置顶：开" : "置顶：关";
   }
 
   function getNativeScale() {
@@ -232,8 +232,8 @@
     await tryNative(() => native.os.setTray({
       icon: "/assets/icons/tray-icon.png",
       menuItems: [
-        { id: "show", text: "Show / Hide" },
-        { id: "quit", text: "Quit" }
+        { id: "show", text: "显示/隐藏" },
+        { id: "quit", text: "退出" }
       ]
     }));
 
