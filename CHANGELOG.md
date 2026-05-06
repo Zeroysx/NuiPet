@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Corrected the BUG feedback email in the `v0.1.0` release notes.
 - Added the BUG feedback email to the `v0.1.0` release notes.
 - Added Chinese release notes for `v0.1.0`, including author attribution, usage scope, links, version, and technical stack.
 - Added `releases/v0.1.0/` to store the Windows x64 packaged release files separately from ignored build output.
