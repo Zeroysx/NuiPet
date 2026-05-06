@@ -11,29 +11,67 @@
   },
   "animations": {
     "idle": { "row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "walk": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
+    "happy_run": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
     "run": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
     "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
     "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8 },
-    "sleep": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
-    "wake": { "row": 6, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6 },
-    "sit": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "blink": { "row": 8, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "idle_breathe": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
-    "idle_look": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
-    "idle_stretch": { "row": 11, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6, "loop": false, "next": "idle" },
-    "idle_sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
-    "idle_blink": { "row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6, "loop": false, "next": "idle" }
+    "cry": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
+    "idle_alt": { "row": 6, "frames": [0, 1, 2, 3, 4, 5], "fps": 4, "loop": false, "next": "idle" },
+    "walk": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 7 },
+    "think": { "row": 8, "frames": [0, 1, 2, 3, 3, 3, 4, 5], "fps": 4 },
+    "idle_long": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4, "loop": false, "next": "idle" },
+    "nod": { "row": 11, "frames": [0, 1, 2, 3, 4, 5], "fps": 5, "loop": false, "next": "idle" },
+    "sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 }
+  },
+  "actionAliases": {
+    "sleep": "cry",
+    "idle_sit": "sit",
+    "wake": "idle_alt",
+    "blink": "think",
+    "idle_breathe": "idle_long",
+    "idle_look": "think",
+    "idle_stretch": "nod",
+    "idle_blink": "think",
+    "walk_drag": "happy_run"
+  },
+  "menuActions": [
+    { "action": "idle", "label": "待机" },
+    { "action": "wave", "label": "挥手" },
+    { "action": "jump", "label": "跳跃" },
+    { "action": "cry", "label": "哭哭" },
+    { "action": "idle_alt", "label": "待机2" },
+    { "action": "walk", "label": "轻快小跑" },
+    { "action": "think", "label": "思考" },
+    { "action": "idle_long", "label": "长待机" },
+    { "action": "nod", "label": "点头" },
+    { "action": "sit", "label": "坐下" }
+  ],
+  "dragActionsByDirection": {
+    "right": "happy_run",
+    "left": "run"
+  },
+  "dragActions": ["happy_run", "run"],
+  "dragAction": "happy_run",
+  "defaultAction": "idle",
+  "actionNotes": {
+    "happy_run": "Drag-only running variant; removed from menu.",
+    "run": "Drag-only running variant; removed from menu.",
+    "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
+    "idle_alt": "Former wake row; visually closer to a second idle action.",
+    "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.",
+    "idle_long": "Former breathe row; visually closer to a longer idle action.",
+    "nod": "Former stretch row; blank trailing frames removed.",
+    "idle_blink": "Alias to the single retained thinking action."
   },
   "animationGroups": {
-    "idleVariants": ["idle_breathe", "idle_blink", "idle_look", "idle_stretch", "idle_sit"],
-    "clickReactions": ["wave", "idle_blink", "jump"],
-    "doubleClickReactions": ["jump", "idle_stretch", "wake"]
+    "idleVariants": ["idle_alt", "idle_long", "think", "nod", "sit"],
+    "clickReactions": ["wave", "jump", "think"],
+    "doubleClickReactions": ["jump", "nod", "idle_alt"]
   },
   "bubbleText": {
     "click": [
       "在这里。",
-      "不要突然戳啦。",
+      "不要突然戳呀。",
       "今天也要开心。",
       "要一起摸鱼吗？",
       "Nui 收到。",
@@ -63,7 +101,7 @@
       "休息一下。",
       "盯。",
       "今天也在桌面巡逻。",
-      "有点想伸懒腰。",
+      "有点想点头。",
       "待机中。"
     ],
     "menu": [
