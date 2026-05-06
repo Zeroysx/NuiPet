@@ -30,7 +30,7 @@
   let actionBeforeDrag = null;
   let facing = 1;
   let dragWindowStart = null;
-  let lastDragMoveAt = 0;
+  let menuOpen = false;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -60,7 +60,6 @@
     dragging = false;
     pointerStart = null;
     dragWindowStart = null;
-    lastDragMoveAt = 0;
     setFacing(1);
     if (actionBeforeDrag) {
       setAction(actionBeforeDrag);
@@ -72,11 +71,11 @@
     return isNeutralino() ? Math.max(1, window.devicePixelRatio || 1) : 1;
   }
 
-  function getWindowSize() {
+  function getWindowSize(extraWidth = 0, extraHeight = 0) {
     const nativeScale = getNativeScale();
     return {
-      width: Math.ceil(frameWidth * settings.scale * nativeScale),
-      height: Math.ceil(frameHeight * settings.scale * nativeScale)
+      width: Math.ceil((frameWidth * settings.scale + extraWidth) * nativeScale),
+      height: Math.ceil((frameHeight * settings.scale + extraHeight) * nativeScale)
     };
   }
 
@@ -100,6 +99,26 @@
     if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
       await tryNative(() => native.window.move(settings.x, settings.y));
     }
+  }
+
+  function resizeWindowForMenu() {
+    if (!isNeutralino() || !native.window.setSize) {
+      return;
+    }
+
+    const framePixelWidth = frameWidth * settings.scale;
+    const framePixelHeight = frameHeight * settings.scale;
+    const extraWidth = Math.max(0, menu.offsetWidth + 16 - framePixelWidth);
+    const extraHeight = Math.max(0, menu.offsetHeight + 16 - framePixelHeight);
+    tryNative(() => native.window.setSize(getWindowSize(extraWidth, extraHeight)));
+  }
+
+  function restoreWindowSize() {
+    if (!isNeutralino() || !native.window.setSize) {
+      return;
+    }
+
+    tryNative(() => native.window.setSize(getWindowSize()));
   }
 
   async function persist(applyWindowSettings) {
@@ -180,6 +199,8 @@
 
   function showMenu(x, y) {
     menu.hidden = false;
+    menuOpen = true;
+    resizeWindowForMenu();
     const maxX = Math.max(0, window.innerWidth - menu.offsetWidth - 4);
     const maxY = Math.max(0, window.innerHeight - menu.offsetHeight - 4);
     menu.style.left = `${Math.min(x, maxX)}px`;
@@ -187,7 +208,13 @@
   }
 
   function hideMenu() {
+    if (!menuOpen) {
+      return;
+    }
+
     menu.hidden = true;
+    menuOpen = false;
+    restoreWindowSize();
   }
 
   function renderFrame(timestamp) {
@@ -348,13 +375,7 @@
       return;
     }
 
-    const now = Date.now();
-    if (now - lastDragMoveAt < 16) {
-      return;
-    }
-
-    lastDragMoveAt = now;
-    await tryNative(() => native.window.move(Math.round(dragWindowStart.x + dx), Math.round(dragWindowStart.y + dy)));
+    tryNative(() => native.window.move(Math.round(dragWindowStart.x + dx), Math.round(dragWindowStart.y + dy)));
   });
 
   window.addEventListener("pointerup", async () => {
