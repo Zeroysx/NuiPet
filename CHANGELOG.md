@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Refined the `v0.1.0` release note technical stack heading.
 - Corrected the BUG feedback email in the `v0.1.0` release notes.
 - Added the BUG feedback email to the `v0.1.0` release notes.
 - Added Chinese release notes for `v0.1.0`, including author attribution, usage scope, links, version, and technical stack.
