@@ -26,6 +26,7 @@
   let dragging = false;
   let pointerStart = null;
   let bubbleTimer = 0;
+  let renderStarted = false;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -58,29 +59,42 @@
     };
   }
 
+  async function tryNative(action) {
+    try {
+      return await action();
+    } catch (error) {
+      console.warn("Neutralino native call failed:", error);
+      return null;
+    }
+  }
+
   async function applyWindow() {
     if (!isNeutralino()) {
       return;
     }
 
-    await native.window.setAlwaysOnTop(settings.always_on_top);
-    await native.window.setSize(getWindowSize());
+    await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
+    await tryNative(() => native.window.setSize(getWindowSize()));
 
     if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
-      await native.window.move(settings.x, settings.y);
+      await tryNative(() => native.window.move(settings.x, settings.y));
     }
   }
 
   async function persist(applyWindowSettings) {
     if (isNeutralino() && native.storage) {
-      await native.storage.setData(storageKey, JSON.stringify(settings));
+      await tryNative(() => native.storage.setData(storageKey, JSON.stringify(settings)));
       if (applyWindowSettings) {
         await applyWindow();
       }
       return;
     }
 
-    localStorage.setItem(storageKey, JSON.stringify(settings));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+    } catch (_error) {
+      // Storage is optional; visual state should still update immediately.
+    }
   }
 
   async function readPosition() {
@@ -116,7 +130,8 @@
     settings.action = action;
     frameIndex = 0;
     lastFrameAt = 0;
-    await persist(false);
+    renderCurrentFrame();
+    persist(false);
   }
 
   function showBubble(text) {
@@ -169,6 +184,27 @@
     requestAnimationFrame(renderFrame);
   }
 
+  function renderCurrentFrame() {
+    if (!petData) {
+      return;
+    }
+
+    const animation = petData.animations[settings.action] || petData.animations.idle;
+    const column = animation.frames[frameIndex % animation.frames.length];
+    const row = animation.row;
+    pet.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
+  }
+
+  function startAnimation() {
+    if (renderStarted) {
+      return;
+    }
+
+    renderStarted = true;
+    renderCurrentFrame();
+    requestAnimationFrame(renderFrame);
+  }
+
   async function loadSettings() {
     if (isNeutralino() && native.storage) {
       try {
@@ -193,43 +229,56 @@
       return;
     }
 
-    await native.os.setTray({
+    await tryNative(() => native.os.setTray({
       icon: "/assets/icons/tray-icon.png",
       menuItems: [
         { id: "show", text: "Show / Hide" },
         { id: "quit", text: "Quit" }
       ]
-    });
+    }));
 
     native.events.on("trayMenuItemClicked", async (event) => {
       if (event.detail.id === "quit") {
-        await native.app.exit();
+        await tryNative(() => native.app.exit());
         return;
       }
 
       if (event.detail.id === "show") {
-        await native.window.show();
-        await native.window.focus();
+        await tryNative(() => native.window.show());
+        await tryNative(() => native.window.focus());
       }
     });
   }
 
   async function init() {
-    if (native && native.init) {
-      native.init();
-    }
+    try {
+      if (native && native.init) {
+        native.init();
+      }
 
-    const response = await fetch("./assets/pets/luyi-nui/pet.json");
-    petData = await response.json();
-    await loadSettings();
-    if (!petData.animations[settings.action]) {
-      settings.action = "idle";
+      const response = await fetch("./assets/pets/luyi-nui/pet.json");
+      petData = await response.json();
+      await loadSettings();
+      if (!petData.animations[settings.action]) {
+        settings.action = "idle";
+      }
+      updateScale();
+      updatePin();
+      startAnimation();
+      persist(true);
+      setupTray();
+    } catch (error) {
+      console.error("NuiPet failed to initialize:", error);
+      petData = petData || {
+        animations: {
+          idle: { row: 0, frames: [0], fps: 1 }
+        }
+      };
+      settings = Object.assign({}, defaults, { action: "idle" });
+      updateScale();
+      updatePin();
+      startAnimation();
     }
-    updateScale();
-    updatePin();
-    await persist(true);
-    await setupTray();
-    requestAnimationFrame(renderFrame);
   }
 
   pet.addEventListener("contextmenu", (event) => {
@@ -322,26 +371,26 @@
     }
 
     if (button.dataset.action) {
-      await setAction(button.dataset.action);
+      setAction(button.dataset.action);
       hideMenu();
     }
 
     if (button.dataset.scale) {
       settings.scale += button.dataset.scale === "+" ? 0.1 : -0.1;
       updateScale();
-      await persist(true);
+      persist(true);
     }
   });
 
   pinToggle.addEventListener("click", async () => {
     settings.always_on_top = !settings.always_on_top;
     updatePin();
-    await persist(true);
+    persist(true);
   });
 
   quit.addEventListener("click", async () => {
     if (isNeutralino()) {
-      await native.app.exit();
+      await tryNative(() => native.app.exit());
     }
   });
 
