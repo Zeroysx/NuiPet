@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Added `releases/v0.1.0/` to store the Windows x64 packaged release files separately from ignored build output.
 - Expanded click reaction text and removed the standalone `Nui!` bubble text.
 - Updated drag-facing logic to use per-move horizontal deltas so reversing direction mid-drag flips immediately.
 - Fixed menu clipping at small pet scales by keeping a fixed menu width and expanding the window to a menu-safe size.

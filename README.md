@@ -73,3 +73,7 @@ The current atlas is stored at `web/assets/pets/luyi-nui/spritesheet.webp` and d
 ## GitHub
 
 The intended remote is a private repository at `Zeroysx/NuiPet`. Development should happen on `feature/bootstrap-nuipet` or another reviewed feature branch, then be merged into `main` after review.
+
+## Releases
+
+Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.1.0/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`.
