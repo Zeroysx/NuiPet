@@ -9,7 +9,6 @@
   const storageKey = "nuipet.settings";
 
   const menuWidth = 194;
-  const menuHeight = 260;
   const fallbackFrame = {
     columns: 1,
     rows: 1,
@@ -182,8 +181,10 @@
 
     const framePixelWidth = grid.frameWidth * settings.scale;
     const framePixelHeight = grid.frameHeight * settings.scale;
-    const extraWidth = Math.max(0, menuWidth - framePixelWidth);
-    const extraHeight = Math.max(0, menuHeight - framePixelHeight);
+    const menuPixelWidth = menu.offsetWidth || menuWidth;
+    const menuPixelHeight = menu.offsetHeight || framePixelHeight;
+    const extraWidth = Math.max(0, menuPixelWidth - framePixelWidth);
+    const extraHeight = Math.max(0, menuPixelHeight - framePixelHeight);
     tryNative(() => native.window.setSize(getWindowSize(extraWidth, extraHeight)));
   }
 

@@ -2,6 +2,11 @@
 
 ## 2026-05-06
 
+- Added right-click menu buttons for `run`, `wake`, `blink`, and all v0.2.0 idle micro-actions.
+- Made the native menu window expansion use the measured menu size so the larger action list has enough vertical space.
+- Updated README animation trigger documentation for the expanded manual action menu.
+- Added the v0.2.1 bug-fix plan for menu clipping when pet scaling changes the menu bounds.
+- Added the v0.2.1 animation asset bug list for mislabeled or visually duplicated sitting, breathing, wake, blink, looking, stretching, and idle-blink actions.
 - Documented v0.2.0 animation trigger conditions in the README.
 - Added the v0.2.1 bug-fix plan for occasional pet disappearance and context-menu bottom clipping.
 - Expanded the 鹿弈Nui atlas metadata to `8x14` with new idle micro-action rows for breathing, looking around, stretching, sitting, and blinking.

@@ -11,6 +11,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - v0.2.0 expands the atlas to `8x14` and adds idle micro-actions for breathing, looking around, stretching, sitting, and blinking.
 - The renderer reads atlas columns, rows, frame width, and frame height from pet metadata instead of hard-coding the old `8x9` layout.
 - Right-click menu for action switching, scale changes, always-on-top, and quit.
+- The right-click menu exposes every current animation action, including idle micro-actions that are otherwise random or reaction-only.
 - The in-app and tray menus use Chinese labels for the target desktop pet experience.
 - Left-click reaction feedback and drag-to-move behavior.
 - Single-click, double-click, drag start, drag end, idle, and menu interactions use categorized Chinese bubble text pools.
@@ -33,18 +34,18 @@ Current action keys and trigger conditions:
 
 - `idle`: Default startup action, fallback action when a saved action is invalid, and the baseline action after idle micro-actions finish.
 - `walk`: Plays temporarily while dragging the desktop pet window. It is labeled as the happy running drag animation in the current menu.
-- `run`: Present in the pet metadata but not directly triggered by the v0.2.0 UI or automatic scheduler.
+- `run`: Can be selected from the right-click menu.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
 - `jump`: Can be selected from the right-click menu, can be picked randomly as a single-click reaction, and can be picked randomly as a double-click reaction.
 - `sleep`: Can be selected from the right-click menu. The current sprite reading labels this row as crying.
-- `wake`: Can be picked randomly as a double-click reaction.
+- `wake`: Can be selected from the right-click menu and can be picked randomly as a double-click reaction.
 - `sit`: Can be selected from the right-click menu. The current sprite reading labels this row as walking.
-- `blink`: Present in the pet metadata but not directly triggered by the v0.2.0 UI or automatic scheduler; automatic blinking uses `idle_blink`.
-- `idle_breathe`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
-- `idle_look`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
-- `idle_stretch`: Can be picked randomly by the automatic idle scheduler and can be picked randomly as a double-click reaction.
-- `idle_sit`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
-- `idle_blink`: Can be picked randomly by the automatic idle scheduler and can be picked randomly as a single-click reaction.
+- `blink`: Can be selected from the right-click menu. Automatic blinking uses `idle_blink`.
+- `idle_breathe`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_look`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_stretch`: Can be selected from the right-click menu, can be picked randomly by the automatic idle scheduler, and can be picked randomly as a double-click reaction.
+- `idle_sit`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_blink`: Can be selected from the right-click menu, can be picked randomly by the automatic idle scheduler, and can be picked randomly as a single-click reaction.
 
 Automatic idle micro-actions do not run while dragging, while the context menu is open, while a pointer interaction is active, or while the current persisted action is not `idle`.
 
@@ -52,8 +53,21 @@ Automatic idle micro-actions do not run while dragging, while the context menu i
 
 Planned v0.2.1 bug-fix candidates:
 
+Runtime and menu issues:
+
 - The desktop pet can occasionally disappear. The initial suspicion is that some animation playback paths may reference missing or unsuitable frames.
-- Switching actions through the right-click menu can render the menu incorrectly and crop the bottom area.
+- Switching actions through the right-click menu can render the menu incorrectly and crop the bottom area. v0.2.0 now sizes the native window from the menu's measured height, but v0.2.1 should keep this issue on the verification list if clipping recurs.
+- Scaling the pet model can still make the menu follow the model size and crop incorrectly. v0.2.1 should separate menu sizing from pet scale more rigorously.
+
+Animation asset and action-label issues:
+
+- `idle_sit` / sitting is effectively a walking animation, so a real sitting animation is missing.
+- `idle_breathe` is not visually distinct from the normal `idle` animation.
+- `wake` is closer to a light waist-twist motion than a wake-up animation, and it appears to have missing frames.
+- `blink` is closer to part of a thinking animation than a clean blink.
+- `idle_look` is effectively a shorter thinking animation rather than a distinct looking-around action.
+- `idle_stretch` and `wake` are effectively the same action.
+- `idle_blink` is also a shorter thinking-style action rather than a true idle blink.
 
 ## Repository Rules
 
