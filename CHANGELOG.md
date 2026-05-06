@@ -2,6 +2,8 @@
 
 ## 2026-05-06
 
+- Documented v0.2.0 animation trigger conditions in the README.
+- Added the v0.2.1 bug-fix plan for occasional pet disappearance and context-menu bottom clipping.
 - Expanded the 鹿弈Nui atlas metadata to `8x14` with new idle micro-action rows for breathing, looking around, stretching, sitting, and blinking.
 - Added animation groups and categorized Chinese bubble text for click, double-click, drag, idle, and menu interactions.
 - Made the pet renderer read frame and atlas geometry from `pet.json` instead of hard-coding the old `8x9` spritesheet size.

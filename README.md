@@ -27,6 +27,34 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - System tray menu for show/hide and quit.
 - Persisted settings for action, scale, always-on-top, and last known window position.
 
+## Animation Triggers
+
+Current action keys and trigger conditions:
+
+- `idle`: Default startup action, fallback action when a saved action is invalid, and the baseline action after idle micro-actions finish.
+- `walk`: Plays temporarily while dragging the desktop pet window. It is labeled as the happy running drag animation in the current menu.
+- `run`: Present in the pet metadata but not directly triggered by the v0.2.0 UI or automatic scheduler.
+- `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
+- `jump`: Can be selected from the right-click menu, can be picked randomly as a single-click reaction, and can be picked randomly as a double-click reaction.
+- `sleep`: Can be selected from the right-click menu. The current sprite reading labels this row as crying.
+- `wake`: Can be picked randomly as a double-click reaction.
+- `sit`: Can be selected from the right-click menu. The current sprite reading labels this row as walking.
+- `blink`: Present in the pet metadata but not directly triggered by the v0.2.0 UI or automatic scheduler; automatic blinking uses `idle_blink`.
+- `idle_breathe`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_look`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_stretch`: Can be picked randomly by the automatic idle scheduler and can be picked randomly as a double-click reaction.
+- `idle_sit`: Can be picked randomly by the automatic idle scheduler after a quiet period while the persisted action is `idle`.
+- `idle_blink`: Can be picked randomly by the automatic idle scheduler and can be picked randomly as a single-click reaction.
+
+Automatic idle micro-actions do not run while dragging, while the context menu is open, while a pointer interaction is active, or while the current persisted action is not `idle`.
+
+## Development Plan
+
+Planned v0.2.1 bug-fix candidates:
+
+- The desktop pet can occasionally disappear. The initial suspicion is that some animation playback paths may reference missing or unsuitable frames.
+- Switching actions through the right-click menu can render the menu incorrectly and crop the bottom area.
+
 ## Repository Rules
 
 Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended.
