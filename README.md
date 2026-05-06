@@ -1,16 +1,21 @@
 # NuiPet
 
-NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The first version targets Windows and focuses on a lightweight, transparent, always-on-top pet window built with Neutralinojs and plain web assets.
+NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Windows version focuses on a lightweight, transparent, always-on-top pet window built with Neutralinojs and plain web assets.
 
 ## Current MVP
 
 - Transparent frameless desktop pet window.
 - Always-on-top behavior with a toggle in the pet menu.
-- Sprite animation from an `8x9` WebP atlas at `192x208` pixels per frame.
+- Sprite animation from a WebP atlas at `192x208` pixels per frame.
 - Actions are labeled by the current sprite reading: idle, happy run while dragging, wave, jump, walking, crying, and wake/blink rows.
+- v0.2.0 expands the atlas to `8x14` and adds idle micro-actions for breathing, looking around, stretching, sitting, and blinking.
+- The renderer reads atlas columns, rows, frame width, and frame height from pet metadata instead of hard-coding the old `8x9` layout.
 - Right-click menu for action switching, scale changes, always-on-top, and quit.
 - The in-app and tray menus use Chinese labels for the target desktop pet experience.
 - Left-click reaction feedback and drag-to-move behavior.
+- Single-click, double-click, drag start, drag end, idle, and menu interactions use categorized Chinese bubble text pools.
+- Idle micro-actions play automatically after a short quiet period without overriding a recent drag or menu-selected action.
+- Visual feedback includes click pop, double-click hop, drag highlighting, drop squash, and bubble entrance animation.
 - Dragging temporarily plays the happy running animation and restores the previous action after the drag ends.
 - The drag animation flips horizontally when dragging left so the pet faces the drag direction.
 - Dragging is implemented with explicit window movement instead of native drag handoff, which keeps animation direction and always-on-top state consistent.
@@ -68,7 +73,17 @@ Neutralino executable icons use the project-relative `applicationIcon` path. The
 
 The source code is MIT licensed. The 鹿弈Nui character artwork, sprite sheet, character name, likeness, and related brand assets are not included in that license unless a separate written license explicitly grants those rights.
 
-The current atlas is stored at `web/assets/pets/luyi-nui/spritesheet.webp` and described by `web/assets/pets/luyi-nui/pet.json`.
+The current atlas is stored at `web/assets/pets/luyi-nui/spritesheet.webp` and described by `web/assets/pets/luyi-nui/pet.json`. Pet metadata defines the atlas grid, action frames, optional animation groups, and categorized bubble text used by the runtime.
+
+## Closed-Source Distribution
+
+NuiPet is distributed as a closed-source application package. This does not require publishing the NuiPet application source code under the Neutralinojs license, because Neutralinojs is distributed under the MIT License and permits closed-source use, modification, distribution, sublicensing, and sale.
+
+Distribution packages that include Neutralinojs runtime binaries, the Neutralino client library, or substantial portions of Neutralinojs must preserve the applicable Neutralinojs copyright and license notices. Release packages should include a third-party notices file that covers Neutralinojs and its bundled third-party components.
+
+Neutralinojs attribution must not imply official endorsement, certification, or sponsorship by the Neutralinojs project or its contributors. Describing Neutralinojs as part of the technical stack is acceptable.
+
+The closed-source distribution policy does not change the separate reserved-rights boundary for 鹿弈Nui character artwork, sprites, name, likeness, or related brand assets.
 
 ## GitHub
 

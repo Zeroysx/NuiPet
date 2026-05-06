@@ -3,6 +3,7 @@ node_modules/
 dist/
 bin/
 .tmp/
+.codex-temp/
 .storage/
 neutralino.js
 neutralino.d.ts

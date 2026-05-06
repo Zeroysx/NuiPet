@@ -5,7 +5,7 @@
   "spritesheetPath": "spritesheet.webp",
   "grid": {
     "columns": 8,
-    "rows": 9,
+    "rows": 14,
     "frameWidth": 192,
     "frameHeight": 208
   },
@@ -18,6 +18,59 @@
     "sleep": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
     "wake": { "row": 6, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6 },
     "sit": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "blink": { "row": 8, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 }
+    "blink": { "row": 8, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
+    "idle_breathe": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
+    "idle_look": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
+    "idle_stretch": { "row": 11, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6, "loop": false, "next": "idle" },
+    "idle_sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle" },
+    "idle_blink": { "row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 6, "loop": false, "next": "idle" }
+  },
+  "animationGroups": {
+    "idleVariants": ["idle_breathe", "idle_blink", "idle_look", "idle_stretch", "idle_sit"],
+    "clickReactions": ["wave", "idle_blink", "jump"],
+    "doubleClickReactions": ["jump", "idle_stretch", "wake"]
+  },
+  "bubbleText": {
+    "click": [
+      "在这里。",
+      "不要突然戳啦。",
+      "今天也要开心。",
+      "要一起摸鱼吗？",
+      "Nui 收到。",
+      "你也休息一下吧。",
+      "刚刚那下有点痒。",
+      "我有在认真待机。"
+    ],
+    "doubleClick": [
+      "跳起来啦。",
+      "反应速度很快吧？",
+      "再戳就要晕啦。",
+      "Nui 出击。"
+    ],
+    "dragStart": [
+      "要搬家了吗？",
+      "出发。",
+      "慢一点慢一点。",
+      "我会跟上的。"
+    ],
+    "dragEnd": [
+      "就停在这里？",
+      "到位。",
+      "这里视野不错。",
+      "放下啦。"
+    ],
+    "idle": [
+      "休息一下。",
+      "盯。",
+      "今天也在桌面巡逻。",
+      "有点想伸懒腰。",
+      "待机中。"
+    ],
+    "menu": [
+      "切换好了。",
+      "收到指令。",
+      "换个姿势。",
+      "这样可以吗？"
+    ]
   }
 }
