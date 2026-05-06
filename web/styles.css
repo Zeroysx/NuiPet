@@ -82,7 +82,7 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(72px, 1fr));
   gap: 6px;
-  width: min(176px, calc(100vw - 16px));
+  width: 176px;
   padding: 8px;
   border: 1px solid var(--menu-border);
   border-radius: 8px;

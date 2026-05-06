@@ -2,6 +2,8 @@
 
 ## 2026-05-05
 
+- Fixed menu clipping at small pet scales by keeping a fixed menu width and expanding the window to a menu-safe size.
+- Applied display-scale correction to controlled dragging so cursor movement and window movement match on high-DPI displays.
 - Expanded the native window while the context menu is open and removed drag move throttling to reduce cursor lag.
 - Replaced native drag handoff with controlled window movement to fix left-facing animation, drag animation cleanup, and always-on-top state after clicks.
 - Flipped the temporary drag-running animation horizontally when dragging left.

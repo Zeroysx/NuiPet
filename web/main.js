@@ -10,6 +10,8 @@
 
   const frameWidth = 192;
   const frameHeight = 208;
+  const menuWidth = 194;
+  const menuHeight = 260;
   const defaults = {
     action: "idle",
     scale: 1,
@@ -108,8 +110,8 @@
 
     const framePixelWidth = frameWidth * settings.scale;
     const framePixelHeight = frameHeight * settings.scale;
-    const extraWidth = Math.max(0, menu.offsetWidth + 16 - framePixelWidth);
-    const extraHeight = Math.max(0, menu.offsetHeight + 16 - framePixelHeight);
+    const extraWidth = Math.max(0, menuWidth - framePixelWidth);
+    const extraHeight = Math.max(0, menuHeight - framePixelHeight);
     tryNative(() => native.window.setSize(getWindowSize(extraWidth, extraHeight)));
   }
 
@@ -375,7 +377,11 @@
       return;
     }
 
-    tryNative(() => native.window.move(Math.round(dragWindowStart.x + dx), Math.round(dragWindowStart.y + dy)));
+    const nativeScale = getNativeScale();
+    tryNative(() => native.window.move(
+      Math.round(dragWindowStart.x + dx * nativeScale),
+      Math.round(dragWindowStart.y + dy * nativeScale)
+    ));
   });
 
   window.addEventListener("pointerup", async () => {
