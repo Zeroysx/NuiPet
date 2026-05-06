@@ -32,6 +32,7 @@
   let actionBeforeDrag = null;
   let facing = 1;
   let dragWindowStart = null;
+  let lastDragScreenX = null;
   let menuOpen = false;
 
   function isNeutralino() {
@@ -62,6 +63,7 @@
     dragging = false;
     pointerStart = null;
     dragWindowStart = null;
+    lastDragScreenX = null;
     setFacing(1);
     if (actionBeforeDrag) {
       setAction(actionBeforeDrag);
@@ -349,6 +351,7 @@
       screenY: event.screenY,
       at: Date.now()
     };
+    lastDragScreenX = event.screenX;
     dragWindowStart = isNeutralino() ? await tryNative(() => native.window.getPosition()) : null;
     hideMenu();
   });
@@ -365,7 +368,11 @@
 
     const dx = event.screenX - pointerStart.screenX;
     const dy = event.screenY - pointerStart.screenY;
-    setFacing(dx < 0 ? -1 : 1);
+    const stepX = event.screenX - (lastDragScreenX ?? pointerStart.screenX);
+    if (Math.abs(stepX) >= 1) {
+      setFacing(stepX < 0 ? -1 : 1);
+      lastDragScreenX = event.screenX;
+    }
 
     if (!dragging) {
       dragging = true;
