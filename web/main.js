@@ -1,15 +1,25 @@
 (function () {
   const pet = document.getElementById("pet");
+  const bubble = document.getElementById("bubble");
   const menu = document.getElementById("menu");
   const scaleLabel = document.getElementById("scaleLabel");
   const pinToggle = document.getElementById("pinToggle");
   const quit = document.getElementById("quit");
-  const tauri = window.__TAURI__;
-  const invoke = tauri && tauri.core ? tauri.core.invoke : null;
-  const appWindow = tauri && tauri.window ? tauri.window.getCurrentWindow() : null;
+  const native = window.Neutralino || null;
+  const storageKey = "nuipet.settings";
 
   const frameWidth = 192;
   const frameHeight = 208;
+  const menuWidth = 194;
+  const menuHeight = 260;
+  const clickMessages = [
+    "我是鹿弈Nui。",
+    "118。",
+    "你在干什么？",
+    "不要戳啦。",
+    "今天也要开心。",
+    "要一起玩吗？"
+  ];
   const defaults = {
     action: "idle",
     scale: 1,
@@ -24,6 +34,19 @@
   let lastFrameAt = 0;
   let lastPositionSave = 0;
   let dragging = false;
+  let pointerStart = null;
+  let bubbleTimer = 0;
+  let renderStarted = false;
+  let actionBeforeDrag = null;
+  let facing = 1;
+  let dragWindowStart = null;
+  let lastDragScreenX = null;
+  let menuOpen = false;
+  let clickMessageIndex = 0;
+
+  function isNeutralino() {
+    return Boolean(native && native.app && native.window);
+  }
 
   function clampScale(value) {
     return Math.min(3, Math.max(0.5, Math.round(value * 10) / 10));
@@ -37,28 +60,107 @@
 
   function updatePin() {
     pinToggle.classList.toggle("is-active", settings.always_on_top);
-    pinToggle.textContent = settings.always_on_top ? "On top: On" : "On top: Off";
+    pinToggle.textContent = settings.always_on_top ? "置顶：开" : "置顶：关";
   }
 
-  async function persist(applyWindow) {
-    if (invoke) {
-      await invoke(applyWindow ? "apply_settings" : "save_settings", { settings });
+  function setFacing(nextFacing) {
+    facing = nextFacing < 0 ? -1 : 1;
+    document.documentElement.style.setProperty("--facing", String(facing));
+  }
+
+  function resetDragState() {
+    dragging = false;
+    pointerStart = null;
+    dragWindowStart = null;
+    lastDragScreenX = null;
+    setFacing(1);
+    if (actionBeforeDrag) {
+      setAction(actionBeforeDrag);
+      actionBeforeDrag = null;
+    }
+  }
+
+  function getNativeScale() {
+    return isNeutralino() ? Math.max(1, window.devicePixelRatio || 1) : 1;
+  }
+
+  function getWindowSize(extraWidth = 0, extraHeight = 0) {
+    const nativeScale = getNativeScale();
+    return {
+      width: Math.ceil((frameWidth * settings.scale + extraWidth) * nativeScale),
+      height: Math.ceil((frameHeight * settings.scale + extraHeight) * nativeScale)
+    };
+  }
+
+  async function tryNative(action) {
+    try {
+      return await action();
+    } catch (error) {
+      console.warn("Neutralino native call failed:", error);
+      return null;
+    }
+  }
+
+  async function applyWindow() {
+    if (!isNeutralino()) {
       return;
     }
-    localStorage.setItem("nuipet.settings", JSON.stringify(settings));
+
+    await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
+    await tryNative(() => native.window.setSize(getWindowSize()));
+
+    if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
+      await tryNative(() => native.window.move(settings.x, settings.y));
+    }
   }
 
-  async function readPosition() {
-    if (!appWindow || !appWindow.outerPosition) {
+  function resizeWindowForMenu() {
+    if (!isNeutralino() || !native.window.setSize) {
+      return;
+    }
+
+    const framePixelWidth = frameWidth * settings.scale;
+    const framePixelHeight = frameHeight * settings.scale;
+    const extraWidth = Math.max(0, menuWidth - framePixelWidth);
+    const extraHeight = Math.max(0, menuHeight - framePixelHeight);
+    tryNative(() => native.window.setSize(getWindowSize(extraWidth, extraHeight)));
+  }
+
+  function restoreWindowSize() {
+    if (!isNeutralino() || !native.window.setSize) {
+      return;
+    }
+
+    tryNative(() => native.window.setSize(getWindowSize()));
+  }
+
+  async function persist(applyWindowSettings) {
+    if (isNeutralino() && native.storage) {
+      await tryNative(() => native.storage.setData(storageKey, JSON.stringify(settings)));
+      if (applyWindowSettings) {
+        await applyWindow();
+      }
       return;
     }
 
     try {
-      const position = await appWindow.outerPosition();
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+    } catch (_error) {
+      // Storage is optional; visual state should still update immediately.
+    }
+  }
+
+  async function readPosition() {
+    if (!isNeutralino() || !native.window.getPosition) {
+      return;
+    }
+
+    try {
+      const position = await native.window.getPosition();
       settings.x = position.x;
       settings.y = position.y;
     } catch (_error) {
-      // Position access is best effort because browser preview mode has no Tauri window.
+      // Browser preview and some window managers may not expose a position.
     }
   }
 
@@ -81,11 +183,43 @@
     settings.action = action;
     frameIndex = 0;
     lastFrameAt = 0;
-    await persist(false);
+    renderCurrentFrame();
+    persist(false);
+  }
+
+  function showBubble(text) {
+    window.clearTimeout(bubbleTimer);
+    bubble.textContent = text;
+    bubble.hidden = false;
+    bubbleTimer = window.setTimeout(() => {
+      bubble.hidden = true;
+    }, 1100);
+  }
+
+  function nextClickMessage() {
+    const message = clickMessages[clickMessageIndex % clickMessages.length];
+    clickMessageIndex += 1;
+    return message;
+  }
+
+  function playClickFeedback() {
+    pet.classList.remove("is-clicked");
+    pet.offsetHeight;
+    pet.classList.add("is-clicked");
+  }
+
+  async function reactToClick() {
+    const reactions = ["wave", "jump", "idle"];
+    const next = reactions[(reactions.indexOf(settings.action) + 1) % reactions.length] || "wave";
+    await setAction(next);
+    playClickFeedback();
+    showBubble(nextClickMessage());
   }
 
   function showMenu(x, y) {
     menu.hidden = false;
+    menuOpen = true;
+    resizeWindowForMenu();
     const maxX = Math.max(0, window.innerWidth - menu.offsetWidth - 4);
     const maxY = Math.max(0, window.innerHeight - menu.offsetHeight - 4);
     menu.style.left = `${Math.min(x, maxX)}px`;
@@ -93,7 +227,13 @@
   }
 
   function hideMenu() {
+    if (!menuOpen) {
+      return;
+    }
+
     menu.hidden = true;
+    menuOpen = false;
+    restoreWindowSize();
   }
 
   function renderFrame(timestamp) {
@@ -111,30 +251,101 @@
     requestAnimationFrame(renderFrame);
   }
 
-  async function loadSettings() {
-    if (invoke) {
-      settings = Object.assign({}, defaults, await invoke("load_settings"));
+  function renderCurrentFrame() {
+    if (!petData) {
       return;
     }
 
+    const animation = petData.animations[settings.action] || petData.animations.idle;
+    const column = animation.frames[frameIndex % animation.frames.length];
+    const row = animation.row;
+    pet.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
+  }
+
+  function startAnimation() {
+    if (renderStarted) {
+      return;
+    }
+
+    renderStarted = true;
+    renderCurrentFrame();
+    requestAnimationFrame(renderFrame);
+  }
+
+  async function loadSettings() {
+    if (isNeutralino() && native.storage) {
+      try {
+        const saved = await native.storage.getData(storageKey);
+        settings = Object.assign({}, defaults, JSON.parse(saved || "{}"));
+        return;
+      } catch (_error) {
+        settings = Object.assign({}, defaults);
+        return;
+      }
+    }
+
     try {
-      settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem("nuipet.settings") || "{}"));
+      settings = Object.assign({}, defaults, JSON.parse(localStorage.getItem(storageKey) || "{}"));
     } catch (_error) {
       settings = Object.assign({}, defaults);
     }
   }
 
-  async function init() {
-    const response = await fetch("./assets/pets/luyi-nui/pet.json");
-    petData = await response.json();
-    await loadSettings();
-    if (!petData.animations[settings.action]) {
-      settings.action = "idle";
+  async function setupTray() {
+    if (!isNeutralino() || !native.os || !native.os.setTray) {
+      return;
     }
-    updateScale();
-    updatePin();
-    await persist(true);
-    requestAnimationFrame(renderFrame);
+
+    await tryNative(() => native.os.setTray({
+      icon: "/assets/icons/tray-icon.png",
+      menuItems: [
+        { id: "show", text: "显示/隐藏" },
+        { id: "quit", text: "退出" }
+      ]
+    }));
+
+    native.events.on("trayMenuItemClicked", async (event) => {
+      if (event.detail.id === "quit") {
+        await tryNative(() => native.app.exit());
+        return;
+      }
+
+      if (event.detail.id === "show") {
+        await tryNative(() => native.window.show());
+        await tryNative(() => native.window.focus());
+      }
+    });
+  }
+
+  async function init() {
+    try {
+      if (native && native.init) {
+        native.init();
+      }
+
+      const response = await fetch("./assets/pets/luyi-nui/pet.json");
+      petData = await response.json();
+      await loadSettings();
+      if (!petData.animations[settings.action]) {
+        settings.action = "idle";
+      }
+      updateScale();
+      updatePin();
+      startAnimation();
+      persist(true);
+      setupTray();
+    } catch (error) {
+      console.error("NuiPet failed to initialize:", error);
+      petData = petData || {
+        animations: {
+          idle: { row: 0, frames: [0], fps: 1 }
+        }
+      };
+      settings = Object.assign({}, defaults, { action: "idle" });
+      updateScale();
+      updatePin();
+      startAnimation();
+    }
   }
 
   pet.addEventListener("contextmenu", (event) => {
@@ -147,23 +358,95 @@
       return;
     }
 
-    dragging = true;
+    pet.setPointerCapture(event.pointerId);
+    pointerStart = {
+      x: event.clientX,
+      y: event.clientY,
+      screenX: event.screenX,
+      screenY: event.screenY,
+      at: Date.now()
+    };
+    lastDragScreenX = event.screenX;
+    dragWindowStart = isNeutralino() ? await tryNative(() => native.window.getPosition()) : null;
     hideMenu();
-    if (appWindow && appWindow.startDragging) {
-      try {
-        await appWindow.startDragging();
-      } catch (_error) {
-        dragging = false;
-      }
+  });
+
+  window.addEventListener("pointermove", async (event) => {
+    if (!pointerStart) {
+      return;
     }
+
+    const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+    if (distance < 4) {
+      return;
+    }
+
+    const dx = event.screenX - pointerStart.screenX;
+    const dy = event.screenY - pointerStart.screenY;
+    const stepX = event.screenX - (lastDragScreenX ?? pointerStart.screenX);
+    if (Math.abs(stepX) >= 1) {
+      setFacing(stepX < 0 ? -1 : 1);
+      lastDragScreenX = event.screenX;
+    }
+
+    if (!dragging) {
+      dragging = true;
+      actionBeforeDrag = settings.action;
+      setAction("walk");
+    }
+
+    if (!isNeutralino() || !dragWindowStart || !native.window.move) {
+      return;
+    }
+
+    const nativeScale = getNativeScale();
+    tryNative(() => native.window.move(
+      Math.round(dragWindowStart.x + dx * nativeScale),
+      Math.round(dragWindowStart.y + dy * nativeScale)
+    ));
   });
 
   window.addEventListener("pointerup", async () => {
+    if (!pointerStart) {
+      return;
+    }
+
+    const wasDragging = dragging;
+
+    if (wasDragging) {
+      resetDragState();
+      await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
+      await savePositionSoon();
+      return;
+    }
+
+    resetDragState();
+    await reactToClick();
+  });
+
+  pet.addEventListener("dblclick", async (event) => {
+    event.preventDefault();
+    await setAction("jump");
+    playClickFeedback();
+    showBubble(nextClickMessage());
+  });
+
+  pet.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    await reactToClick();
+  });
+
+  pet.addEventListener("lostpointercapture", async () => {
     if (!dragging) {
       return;
     }
 
-    dragging = false;
+    resetDragState();
+    await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
     await savePositionSoon();
   });
 
@@ -176,26 +459,26 @@
     }
 
     if (button.dataset.action) {
-      await setAction(button.dataset.action);
+      setAction(button.dataset.action);
       hideMenu();
     }
 
     if (button.dataset.scale) {
       settings.scale += button.dataset.scale === "+" ? 0.1 : -0.1;
       updateScale();
-      await persist(true);
+      persist(true);
     }
   });
 
   pinToggle.addEventListener("click", async () => {
     settings.always_on_top = !settings.always_on_top;
     updatePin();
-    await persist(true);
+    persist(true);
   });
 
   quit.addEventListener("click", async () => {
-    if (invoke) {
-      await invoke("quit_app");
+    if (isNeutralino()) {
+      await tryNative(() => native.app.exit());
     }
   });
 

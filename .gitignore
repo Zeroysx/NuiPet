@@ -1,7 +1,10 @@
 target/
 node_modules/
 dist/
+bin/
+.tmp/
+.storage/
+neutralino.js
+neutralino.d.ts
 .DS_Store
 *.log
-src-tauri/target/
-src-tauri/gen/schemas/

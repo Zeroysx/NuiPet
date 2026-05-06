@@ -2,13 +2,14 @@
   "name": "nuipet",
   "version": "0.1.0",
   "private": true,
-  "description": "A Tauri desktop pet based on 鹿弈Nui.",
+  "description": "A Neutralinojs desktop pet based on Luyi Nui.",
   "scripts": {
     "dev:web": "node scripts/dev-server.js",
     "build:web": "node scripts/check-assets.js",
-    "tauri:dev": "cargo tauri dev",
-    "tauri:build": "cargo tauri build",
-    "check": "npm run build:web && cargo check --manifest-path src-tauri/Cargo.toml"
+    "neu:run": "node scripts/neu-runner.js run",
+    "neu:build": "node scripts/neu-runner.js build",
+    "neu:update": "node scripts/neu-runner.js update",
+    "check": "npm run build:web && node --check web/main.js && node --check scripts/dev-server.js && node --check scripts/check-assets.js && node --check scripts/neu-runner.js"
   },
   "devDependencies": {}
 }
