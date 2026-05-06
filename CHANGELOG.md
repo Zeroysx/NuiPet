@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Expanded click reaction text and removed the standalone `Nui!` bubble text.
 - Updated drag-facing logic to use per-move horizontal deltas so reversing direction mid-drag flips immediately.
 - Fixed menu clipping at small pet scales by keeping a fixed menu width and expanding the window to a menu-safe size.
 - Applied display-scale correction to controlled dragging so cursor movement and window movement match on high-DPI displays.

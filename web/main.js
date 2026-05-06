@@ -12,6 +12,14 @@
   const frameHeight = 208;
   const menuWidth = 194;
   const menuHeight = 260;
+  const clickMessages = [
+    "我是鹿弈Nui。",
+    "118。",
+    "你在干什么？",
+    "不要戳啦。",
+    "今天也要开心。",
+    "要一起玩吗？"
+  ];
   const defaults = {
     action: "idle",
     scale: 1,
@@ -34,6 +42,7 @@
   let dragWindowStart = null;
   let lastDragScreenX = null;
   let menuOpen = false;
+  let clickMessageIndex = 0;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -187,6 +196,12 @@
     }, 1100);
   }
 
+  function nextClickMessage() {
+    const message = clickMessages[clickMessageIndex % clickMessages.length];
+    clickMessageIndex += 1;
+    return message;
+  }
+
   function playClickFeedback() {
     pet.classList.remove("is-clicked");
     pet.offsetHeight;
@@ -198,7 +213,7 @@
     const next = reactions[(reactions.indexOf(settings.action) + 1) % reactions.length] || "wave";
     await setAction(next);
     playClickFeedback();
-    showBubble(next === "jump" ? "Nui!" : "Hi!");
+    showBubble(nextClickMessage());
   }
 
   function showMenu(x, y) {
@@ -413,7 +428,7 @@
     event.preventDefault();
     await setAction("jump");
     playClickFeedback();
-    showBubble("!");
+    showBubble(nextClickMessage());
   });
 
   pet.addEventListener("keydown", async (event) => {

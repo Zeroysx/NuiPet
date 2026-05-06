@@ -17,6 +17,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The fir
 - The window expands while the right-click menu is open so all menu rows render inside the native window bounds.
 - Drag movement uses the display scale factor, so the window follows the cursor correctly on high-DPI displays.
 - Drag-facing direction updates from the latest pointer movement, so reversing direction mid-drag flips the animation immediately.
+- Click reactions rotate through a small Chinese text pool based on 鹿弈Nui references.
 - Animation and menu actions are resilient to Neutralino storage/window API failures, so native persistence problems do not freeze the pet on the first frame.
 - System tray menu for show/hide and quit.
 - Persisted settings for action, scale, always-on-top, and last known window position.
