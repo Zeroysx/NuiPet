@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Rebuilt and published the first GitHub Release package for `v0.1.0`.
 - Refined the `v0.1.0` release note technical stack heading.
 - Corrected the BUG feedback email in the `v0.1.0` release notes.
 - Added the BUG feedback email to the `v0.1.0` release notes.

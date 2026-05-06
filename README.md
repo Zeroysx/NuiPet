@@ -77,3 +77,5 @@ The intended remote is a private repository at `Zeroysx/NuiPet`. Development sho
 ## Releases
 
 Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.1.0/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
+
+GitHub release `v0.1.0` publishes the same Windows x64 package files as release assets.
