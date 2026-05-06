@@ -2,6 +2,8 @@
 
 ## 2026-05-05
 
+- Corrected action labels: the old walk row is a happy running drag animation, sit is walking, and sleep is crying.
+- Added temporary happy-run playback while dragging the pet window.
 - Localized in-app and tray menu labels to Chinese.
 - Made animation startup and menu action switching independent from Neutralino persistence/window API success.
 - Fixed high-DPI window sizing so the full pet frame is visible instead of only the head.

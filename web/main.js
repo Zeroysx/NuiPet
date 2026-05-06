@@ -27,6 +27,7 @@
   let pointerStart = null;
   let bubbleTimer = 0;
   let renderStarted = false;
+  let actionBeforeDrag = null;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -312,10 +313,16 @@
     }
 
     dragging = true;
+    actionBeforeDrag = settings.action;
+    setAction("walk");
     try {
       await native.window.beginDrag(pointerStart.screenX, pointerStart.screenY);
     } catch (_error) {
       dragging = false;
+      if (actionBeforeDrag) {
+        setAction(actionBeforeDrag);
+        actionBeforeDrag = null;
+      }
     }
   });
 
@@ -329,6 +336,10 @@
     dragging = false;
 
     if (wasDragging) {
+      if (actionBeforeDrag) {
+        setAction(actionBeforeDrag);
+        actionBeforeDrag = null;
+      }
       await savePositionSoon();
       return;
     }
@@ -359,6 +370,10 @@
 
     dragging = false;
     pointerStart = null;
+    if (actionBeforeDrag) {
+      setAction(actionBeforeDrag);
+      actionBeforeDrag = null;
+    }
     await savePositionSoon();
   });
 
