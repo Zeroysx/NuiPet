@@ -42,7 +42,7 @@ button {
   background-size: 1536px 1872px;
   image-rendering: pixelated;
   transform: scaleX(var(--facing)) scale(var(--scale));
-  transform-origin: top left;
+  transform-origin: center center;
   cursor: grab;
   outline: none;
 }

@@ -29,6 +29,8 @@
   let renderStarted = false;
   let actionBeforeDrag = null;
   let facing = 1;
+  let dragWindowStart = null;
+  let lastDragMoveAt = 0;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -52,6 +54,18 @@
   function setFacing(nextFacing) {
     facing = nextFacing < 0 ? -1 : 1;
     document.documentElement.style.setProperty("--facing", String(facing));
+  }
+
+  function resetDragState() {
+    dragging = false;
+    pointerStart = null;
+    dragWindowStart = null;
+    lastDragMoveAt = 0;
+    setFacing(1);
+    if (actionBeforeDrag) {
+      setAction(actionBeforeDrag);
+      actionBeforeDrag = null;
+    }
   }
 
   function getNativeScale() {
@@ -298,6 +312,7 @@
       return;
     }
 
+    pet.setPointerCapture(event.pointerId);
     pointerStart = {
       x: event.clientX,
       y: event.clientY,
@@ -305,32 +320,41 @@
       screenY: event.screenY,
       at: Date.now()
     };
+    dragWindowStart = isNeutralino() ? await tryNative(() => native.window.getPosition()) : null;
     hideMenu();
   });
 
   window.addEventListener("pointermove", async (event) => {
-    if (!pointerStart || dragging) {
+    if (!pointerStart) {
       return;
     }
 
     const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
-    if (distance < 4 || !isNeutralino() || !native.window.beginDrag) {
+    if (distance < 4) {
       return;
     }
 
-    setFacing(event.screenX < pointerStart.screenX ? -1 : 1);
-    dragging = true;
-    actionBeforeDrag = settings.action;
-    setAction("walk");
-    try {
-      await native.window.beginDrag(pointerStart.screenX, pointerStart.screenY);
-    } catch (_error) {
-      dragging = false;
-      if (actionBeforeDrag) {
-        setAction(actionBeforeDrag);
-        actionBeforeDrag = null;
-      }
+    const dx = event.screenX - pointerStart.screenX;
+    const dy = event.screenY - pointerStart.screenY;
+    setFacing(dx < 0 ? -1 : 1);
+
+    if (!dragging) {
+      dragging = true;
+      actionBeforeDrag = settings.action;
+      setAction("walk");
     }
+
+    if (!isNeutralino() || !dragWindowStart || !native.window.move) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastDragMoveAt < 16) {
+      return;
+    }
+
+    lastDragMoveAt = now;
+    await tryNative(() => native.window.move(Math.round(dragWindowStart.x + dx), Math.round(dragWindowStart.y + dy)));
   });
 
   window.addEventListener("pointerup", async () => {
@@ -339,19 +363,15 @@
     }
 
     const wasDragging = dragging;
-    pointerStart = null;
-    dragging = false;
 
     if (wasDragging) {
-      setFacing(1);
-      if (actionBeforeDrag) {
-        setAction(actionBeforeDrag);
-        actionBeforeDrag = null;
-      }
+      resetDragState();
+      await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
       await savePositionSoon();
       return;
     }
 
+    resetDragState();
     await reactToClick();
   });
 
@@ -376,13 +396,8 @@
       return;
     }
 
-    dragging = false;
-    pointerStart = null;
-    setFacing(1);
-    if (actionBeforeDrag) {
-      setAction(actionBeforeDrag);
-      actionBeforeDrag = null;
-    }
+    resetDragState();
+    await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
     await savePositionSoon();
   });
 

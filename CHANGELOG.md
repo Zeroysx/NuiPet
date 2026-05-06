@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Replaced native drag handoff with controlled window movement to fix left-facing animation, drag animation cleanup, and always-on-top state after clicks.
 - Flipped the temporary drag-running animation horizontally when dragging left.
 - Corrected action labels: the old walk row is a happy running drag animation, sit is walking, and sleep is crying.
 - Added temporary happy-run playback while dragging the pet window.

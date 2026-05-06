@@ -13,6 +13,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The fir
 - Left-click reaction feedback and drag-to-move behavior.
 - Dragging temporarily plays the happy running animation and restores the previous action after the drag ends.
 - The drag animation flips horizontally when dragging left so the pet faces the drag direction.
+- Dragging is implemented with explicit window movement instead of native drag handoff, which keeps animation direction and always-on-top state consistent.
 - Animation and menu actions are resilient to Neutralino storage/window API failures, so native persistence problems do not freeze the pet on the first frame.
 - System tray menu for show/hide and quit.
 - Persisted settings for action, scale, always-on-top, and last known window position.
