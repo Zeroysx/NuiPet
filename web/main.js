@@ -28,6 +28,7 @@
   let bubbleTimer = 0;
   let renderStarted = false;
   let actionBeforeDrag = null;
+  let facing = 1;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -46,6 +47,11 @@
   function updatePin() {
     pinToggle.classList.toggle("is-active", settings.always_on_top);
     pinToggle.textContent = settings.always_on_top ? "置顶：开" : "置顶：关";
+  }
+
+  function setFacing(nextFacing) {
+    facing = nextFacing < 0 ? -1 : 1;
+    document.documentElement.style.setProperty("--facing", String(facing));
   }
 
   function getNativeScale() {
@@ -312,6 +318,7 @@
       return;
     }
 
+    setFacing(event.screenX < pointerStart.screenX ? -1 : 1);
     dragging = true;
     actionBeforeDrag = settings.action;
     setAction("walk");
@@ -336,6 +343,7 @@
     dragging = false;
 
     if (wasDragging) {
+      setFacing(1);
       if (actionBeforeDrag) {
         setAction(actionBeforeDrag);
         actionBeforeDrag = null;
@@ -370,6 +378,7 @@
 
     dragging = false;
     pointerStart = null;
+    setFacing(1);
     if (actionBeforeDrag) {
       setAction(actionBeforeDrag);
       actionBeforeDrag = null;

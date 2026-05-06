@@ -2,6 +2,7 @@
   --frame-width: 192px;
   --frame-height: 208px;
   --scale: 1;
+  --facing: 1;
   --menu-bg: rgba(23, 29, 38, 0.94);
   --menu-border: rgba(255, 255, 255, 0.18);
   --menu-text: #f7fbff;
@@ -40,7 +41,7 @@ button {
   background-repeat: no-repeat;
   background-size: 1536px 1872px;
   image-rendering: pixelated;
-  transform: scale(var(--scale));
+  transform: scaleX(var(--facing)) scale(var(--scale));
   transform-origin: top left;
   cursor: grab;
   outline: none;
@@ -138,12 +139,12 @@ button {
 
 @keyframes pet-pop {
   0% {
-    transform: scale(var(--scale));
+    transform: scaleX(var(--facing)) scale(var(--scale));
   }
   45% {
-    transform: scale(calc(var(--scale) * 1.06));
+    transform: scaleX(var(--facing)) scale(calc(var(--scale) * 1.06));
   }
   100% {
-    transform: scale(var(--scale));
+    transform: scaleX(var(--facing)) scale(var(--scale));
   }
 }

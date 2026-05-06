@@ -2,6 +2,7 @@
 
 ## 2026-05-05
 
+- Flipped the temporary drag-running animation horizontally when dragging left.
 - Corrected action labels: the old walk row is a happy running drag animation, sit is walking, and sleep is crying.
 - Added temporary happy-run playback while dragging the pet window.
 - Localized in-app and tray menu labels to Chinese.
