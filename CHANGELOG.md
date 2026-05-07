@@ -72,3 +72,14 @@
 - Added a transparent always-on-top pet window with sprite animation, custom context menu, tray actions, and persisted settings.
 - Added 鹿弈Nui sprite assets and metadata with a reserved-rights asset licensing boundary.
 - Added asset validation notes and corrected the license asset boundary wording.
+
+## 2026-05-08
+
+- Started `v0.2.2` development on `codex/v0.2.2-installer-and-polish`.
+- Updated package and Neutralino metadata to `0.2.2`.
+- Added metadata-driven `jump` y-axis motion so the action visibly lifts and lands during playback.
+- Unified right-click and tray quit behavior through the same Neutralino native exit path.
+- Polished the compact right-click menu styling, focus state, and text overflow handling.
+- Cleaned strong green-screen/chroma-key residue pixels from the current spritesheet.
+- Added Inno Setup installer packaging with `npm run installer:win`, `installer/NuiPet.iss`, and `releases/v0.2.2/`.
+- Added third-party notices for packaged Neutralinojs runtime distribution.

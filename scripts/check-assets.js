@@ -66,6 +66,23 @@ function hasSafeAnimation(name, animation, grid) {
     safe = false;
   }
 
+  if (animation.motionY !== undefined) {
+    if (!Array.isArray(animation.motionY)) {
+      errors.push(`Animation "${name}" motionY must be an array when defined.`);
+      safe = false;
+    } else if (animation.motionY.length !== animation.frames.length) {
+      errors.push(`Animation "${name}" motionY must match the frame count.`);
+      safe = false;
+    } else {
+      animation.motionY.forEach((offset) => {
+        if (!Number.isFinite(offset)) {
+          errors.push(`Animation "${name}" motionY values must be finite numbers.`);
+          safe = false;
+        }
+      });
+    }
+  }
+
   return safe;
 }
 

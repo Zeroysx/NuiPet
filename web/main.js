@@ -103,7 +103,8 @@
       frames: frames.length ? frames : fallback.frames,
       fps: Number.isFinite(animation.fps) && animation.fps > 0 ? animation.fps : fallback.fps,
       loop: animation.loop,
-      next: animation.next
+      next: animation.next,
+      motionY: Array.isArray(animation.motionY) ? animation.motionY.filter(Number.isFinite) : []
     };
   }
 
@@ -118,7 +119,17 @@
       return false;
     }
 
-    return animation.frames.every((frame) => Number.isInteger(frame) && frame >= 0 && frame < grid.columns);
+    if (!animation.frames.every((frame) => Number.isInteger(frame) && frame >= 0 && frame < grid.columns)) {
+      return false;
+    }
+
+    if (animation.motionY !== undefined) {
+      return Array.isArray(animation.motionY)
+        && animation.motionY.length === animation.frames.length
+        && animation.motionY.every(Number.isFinite);
+    }
+
+    return true;
   }
 
   function getAnimation(action) {
@@ -180,6 +191,7 @@
     settings.scale = clampScale(settings.scale);
     document.documentElement.style.setProperty("--scale", String(settings.scale));
     scaleLabel.textContent = `${Math.round(settings.scale * 100)}%`;
+    renderCurrentFrame();
   }
 
   function updatePin() {
@@ -213,6 +225,11 @@
       button.textContent = item.label || item.action;
       actionMenu.appendChild(button);
     });
+  }
+
+  function setActionOffsetY(animation, frameSlot) {
+    const offset = animation.motionY[frameSlot] || 0;
+    document.documentElement.style.setProperty("--action-offset-y", `${offset * settings.scale}px`);
   }
 
   function noteInteraction() {
@@ -320,6 +337,16 @@
       console.warn("Neutralino native call failed:", error);
       return null;
     }
+  }
+
+  async function exitApp() {
+    hideMenu();
+    if (!isNeutralino() || !native.app || !native.app.exit) {
+      window.close();
+      return;
+    }
+
+    await tryNative(() => native.app.exit());
   }
 
   async function applyWindow() {
@@ -532,9 +559,11 @@
         return;
       }
 
-      const column = animation.frames[animation.loop === false ? frameIndex : frameIndex % animation.frames.length] || 0;
+      const frameSlot = animation.loop === false ? frameIndex : frameIndex % animation.frames.length;
+      const column = animation.frames[frameSlot] || 0;
       const row = animation.row;
       pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
+      setActionOffsetY(animation, frameSlot);
       frameIndex += 1;
       lastFrameAt = timestamp;
     }
@@ -548,9 +577,11 @@
     }
 
     const animation = getAnimation(activeAction);
-    const column = animation.frames[Math.min(frameIndex, animation.frames.length - 1)] || 0;
+    const frameSlot = Math.min(frameIndex, animation.frames.length - 1);
+    const column = animation.frames[frameSlot] || 0;
     const row = animation.row || 0;
     pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
+    setActionOffsetY(animation, frameSlot);
   }
 
   function startAnimation() {
@@ -597,7 +628,7 @@
 
     native.events.on("trayMenuItemClicked", async (event) => {
       if (event.detail.id === "quit") {
-        await tryNative(() => native.app.exit());
+        await exitApp();
         return;
       }
 
@@ -790,9 +821,7 @@
   });
 
   quit.addEventListener("click", async () => {
-    if (isNeutralino()) {
-      await tryNative(() => native.app.exit());
-    }
+    await exitApp();
   });
 
   setInterval(savePositionSoon, 5000);

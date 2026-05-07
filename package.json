@@ -1,6 +1,6 @@
 {
   "name": "nuipet",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "description": "A Neutralinojs desktop pet based on Luyi Nui.",
   "scripts": {
@@ -9,7 +9,8 @@
     "neu:run": "node scripts/neu-runner.js run",
     "neu:build": "node scripts/neu-runner.js build",
     "neu:update": "node scripts/neu-runner.js update",
-    "check": "npm run build:web && node --check web/main.js && node --check scripts/dev-server.js && node --check scripts/check-assets.js && node --check scripts/neu-runner.js"
+    "installer:win": "node scripts/build-installer.js",
+    "check": "npm run build:web && node --check web/main.js && node --check scripts/dev-server.js && node --check scripts/check-assets.js && node --check scripts/neu-runner.js && node --check scripts/build-installer.js"
   },
   "devDependencies": {}
 }
