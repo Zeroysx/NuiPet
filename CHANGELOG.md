@@ -83,3 +83,5 @@
 - Cleaned strong green-screen/chroma-key residue pixels from the current spritesheet.
 - Added Inno Setup installer packaging with `npm run installer:win`, `installer/NuiPet.iss`, and `releases/v0.2.2/`.
 - Added third-party notices for packaged Neutralinojs runtime distribution.
+- Redrew the `cry` animation row in the older hard-edged pixel style and removed remaining green-screen residue from the atlas.
+- Added a Windows IExpress fallback so `npm run installer:win` can produce `NuiPet-v0.2.2-setup.exe` even when Inno Setup is not installed.

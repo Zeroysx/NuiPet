@@ -121,7 +121,7 @@ If a native API call fails, the pet continues animating and logs the failure to 
 
 `npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
 
-`npm run installer:win` expects `npm run neu:build` to have produced `dist/NuiPet/NuiPet-win_x64.exe` and `dist/NuiPet/resources.neu`. It copies those files plus `README.md`, `LICENSE`, and `THIRD_PARTY_NOTICES.md` into `releases/v0.2.2/`, then emits `NuiPet-v0.2.2-setup.exe` through Inno Setup.
+`npm run installer:win` expects `npm run neu:build` to have produced `dist/NuiPet/NuiPet-win_x64.exe` and `dist/NuiPet/resources.neu`. It copies those files plus `README.md`, `LICENSE`, and `THIRD_PARTY_NOTICES.md` into `releases/v0.2.2/`, then emits `NuiPet-v0.2.2-setup.exe`. Inno Setup is preferred when available; otherwise the script falls back to Windows IExpress and creates a per-user executable installer.
 
 The frontend is intentionally framework-free. `web/main.js` renders the pet and uses Neutralino APIs when running inside the desktop shell. Browser preview falls back to `localStorage`.
 
