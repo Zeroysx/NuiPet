@@ -87,3 +87,4 @@
 - Added a Windows IExpress fallback so `npm run installer:win` can produce `NuiPet-v0.2.2-setup.exe` even when Inno Setup is not installed.
 - Corrected the animation-style target from `cry` to `sit` and redrew the sitting row to match the older hard-edged pixel style.
 - Replaced the failed stitched `sit` redraw with a coherent pixelized sitting row to fix head/body alignment artifacts.
+- Replaced the faulty patched `cry` face and rebuilt `sit` with nearest-neighbor pixelation instead of blur-based scaling.
