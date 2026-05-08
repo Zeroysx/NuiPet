@@ -86,3 +86,4 @@
 - Redrew the `cry` animation row in the older hard-edged pixel style and removed remaining green-screen residue from the atlas.
 - Added a Windows IExpress fallback so `npm run installer:win` can produce `NuiPet-v0.2.2-setup.exe` even when Inno Setup is not installed.
 - Corrected the animation-style target from `cry` to `sit` and redrew the sitting row to match the older hard-edged pixel style.
+- Replaced the failed stitched `sit` redraw with a coherent pixelized sitting row to fix head/body alignment artifacts.
