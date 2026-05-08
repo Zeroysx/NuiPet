@@ -78,7 +78,7 @@ Implemented v0.2.2 improvements and packaging work:
 - The jump animation now reads optional per-frame `motionY` metadata and moves on the y-axis during playback.
 - The right-click menu and tray quit actions both use the same Neutralino native exit path.
 - The right-click menu has a tighter polished visual style, compact two-column action grid, focus state, and safer text overflow handling.
-- The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels.
+- The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels, and the `sit` row has been redrawn to match the older pixel style.
 - Windows x64 releases can now build an Inno Setup installer with `npm run installer:win`.
 
 ## Repository Rules
