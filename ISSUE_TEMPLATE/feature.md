@@ -1,10 +1,4 @@
 ---
-name: Feature Request
-about: 提出一个新功能
-title: "[Feature] "
-labels: ["type:feature"]
-assignees: []
----
 
 # 功能描述
 
