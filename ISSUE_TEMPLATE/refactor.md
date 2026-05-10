@@ -1,10 +1,4 @@
 ---
-name: Refactor
-about: 代码重构或架构优化
-title: "[Refactor] "
-labels: ["type:refactor"]
-assignees: []
----
 
 # 当前问题
 
