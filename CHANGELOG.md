@@ -92,3 +92,4 @@
 ## 2026-05-10
 
 - Added the v0.2.3 development plan for a guided installer UI, a new `sleep` action, and the menu-over-pet wake-up bug.
+- Marked the archived `v0.2.2` installer as unavailable and documented the portable Windows x64 package as the supported release package.

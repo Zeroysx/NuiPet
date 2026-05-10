@@ -79,7 +79,7 @@ Implemented v0.2.2 improvements and packaging work:
 - The right-click menu and tray quit actions both use the same Neutralino native exit path.
 - The right-click menu has a tighter polished visual style, compact two-column action grid, focus state, and safer text overflow handling.
 - The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels, and the `sit` row has been redrawn to match the older pixel style.
-- Windows x64 releases can now build an Inno Setup installer with `npm run installer:win`.
+- Windows x64 releases can build an installer artifact with `npm run installer:win`, but the v0.2.2 installer is marked unavailable pending the v0.2.3 guided installer fix.
 
 ## v0.2.3 Development Plan
 
@@ -129,7 +129,7 @@ If a native API call fails, the pet continues animating and logs the failure to 
 
 `npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
 
-`npm run installer:win` expects `npm run neu:build` to have produced `dist/NuiPet/NuiPet-win_x64.exe` and `dist/NuiPet/resources.neu`. It copies those files plus `README.md`, `LICENSE`, and `THIRD_PARTY_NOTICES.md` into `releases/v0.2.2/`, then emits `NuiPet-v0.2.2-setup.exe`. Inno Setup is preferred when available; otherwise the script falls back to Windows IExpress and creates a per-user executable installer.
+`npm run installer:win` expects `npm run neu:build` to have produced `dist/NuiPet/NuiPet-win_x64.exe` and `dist/NuiPet/resources.neu`. It copies those files plus `README.md`, `LICENSE`, and `THIRD_PARTY_NOTICES.md` into `releases/v0.2.2/`, then emits `NuiPet-v0.2.2-setup.exe`. Inno Setup is preferred when available; otherwise the script falls back to Windows IExpress and creates a per-user executable installer. The archived v0.2.2 installer is not a supported download; use the portable `NuiPet-win_x64.exe` and `resources.neu` pair instead.
 
 The frontend is intentionally framework-free. `web/main.js` renders the pet and uses Neutralino APIs when running inside the desktop shell. Browser preview falls back to `localStorage`.
 
@@ -157,6 +157,6 @@ The intended remote is a private repository at `Zeroysx/NuiPet`. Development sho
 
 ## Releases
 
-Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.2.2/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The v0.2.2 release directory also includes `NuiPet-v0.2.2-setup.exe` when `npm run installer:win` succeeds. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
+Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.2.2/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The v0.2.2 release directory also includes `NuiPet-v0.2.2-setup.exe` for archival review, but the installer is marked unavailable and should not be used for distribution. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
 
 GitHub release `v0.1.0` publishes the same Windows x64 package files as release assets.
