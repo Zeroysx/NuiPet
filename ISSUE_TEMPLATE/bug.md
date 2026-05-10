@@ -1,10 +1,4 @@
 ---
-name: Bug Report
-about: 提交一个缺陷
-title: "[Bug] "
-labels: ["type:bug"]
-assignees: []
----
 
 # 问题描述
 
@@ -67,6 +61,7 @@ assignees: []
 - [ ] P1
 - [ ] P2
 - [ ] P3
+- [ ] P4
 
 ## Scope
 
