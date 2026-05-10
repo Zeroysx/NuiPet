@@ -81,6 +81,14 @@ Implemented v0.2.2 improvements and packaging work:
 - The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels, and the `sit` row has been redrawn to match the older pixel style.
 - Windows x64 releases can now build an Inno Setup installer with `npm run installer:win`.
 
+## v0.2.3 Development Plan
+
+Planned v0.2.3 improvements and bug fixes:
+
+- Optimize the Windows installer so it uses a visible guided UI instead of a bare self-extract/install flow.
+- Add a new `sleep` action with matching animation metadata, menu exposure, and compatibility behavior.
+- Fix the menu wake-up behavior so opening the menu does not cover or visually block the desktop pet.
+
 ## Repository Rules
 
 Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended.
