@@ -1,4 +1,10 @@
 ---
+name: Feature Request
+about: 提出一个新功能
+title: "[Feature] "
+labels: ["type:feature"]
+assignees: []
+---
 
 # 功能描述
 
@@ -40,6 +46,7 @@
 - [ ] P1 - 重要功能
 - [ ] P2 - 一般需求
 - [ ] P3 - 长期优化
+- [ ] P4
 
 ## Impact
 
@@ -66,4 +73,3 @@
 # 附加信息
 
 补充资料、截图、参考链接等。
-
