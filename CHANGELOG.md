@@ -93,3 +93,7 @@
 
 - Added the v0.2.3 development plan for a guided installer UI, a new `sleep` action, and the menu-over-pet wake-up bug.
 - Marked the archived `v0.2.2` installer as unavailable and documented the portable Windows x64 package as the supported release package.
+- Hardened asset validation so invalid animation objects and malformed `motionY` metadata report structured errors instead of crashing.
+- Added a header comment to the Windows installer build script.
+- Replaced one unnatural idle bubble text entry.
+- Added `TODO.md` for deferred PR review follow-ups and expanded the v0.2.3 plan with the non-blocking animation design items.

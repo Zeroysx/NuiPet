@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
+// Builds the Windows release payload and emits a setup executable when the
+// local machine has Inno Setup or the Windows IExpress fallback available.
 const root = path.join(__dirname, "..");
 const version = require(path.join(root, "package.json")).version;
 const appName = "NuiPet";

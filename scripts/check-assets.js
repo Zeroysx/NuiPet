@@ -44,12 +44,13 @@ function hasSafeAnimation(name, animation, grid) {
   }
 
   let safe = true;
+  const hasFrames = Array.isArray(animation.frames) && animation.frames.length > 0;
   if (!Number.isInteger(animation.row) || animation.row < 0 || animation.row >= grid.rows) {
     errors.push(`Animation "${name}" row must be between 0 and ${grid.rows - 1}.`);
     safe = false;
   }
 
-  if (!Array.isArray(animation.frames) || !animation.frames.length) {
+  if (!hasFrames) {
     errors.push(`Animation "${name}" must define at least one frame.`);
     safe = false;
   } else {
@@ -69,6 +70,9 @@ function hasSafeAnimation(name, animation, grid) {
   if (animation.motionY !== undefined) {
     if (!Array.isArray(animation.motionY)) {
       errors.push(`Animation "${name}" motionY must be an array when defined.`);
+      safe = false;
+    } else if (!hasFrames) {
+      errors.push(`Animation "${name}" motionY can only be validated after frames are defined.`);
       safe = false;
     } else if (animation.motionY.length !== animation.frames.length) {
       errors.push(`Animation "${name}" motionY must match the frame count.`);
@@ -106,7 +110,13 @@ if (pet) {
     const rowOwners = new Map();
 
     Object.entries(animations).forEach(([name, animation]) => {
-      if (hasSafeAnimation(name, animation, grid)) {
+      const isSafe = hasSafeAnimation(name, animation, grid);
+
+      if (!animation || typeof animation !== "object") {
+        return;
+      }
+
+      if (isSafe) {
         safeAnimations.add(name);
       }
 

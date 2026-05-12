@@ -80,6 +80,7 @@ Implemented v0.2.2 improvements and packaging work:
 - The right-click menu has a tighter polished visual style, compact two-column action grid, focus state, and safer text overflow handling.
 - The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels, and the `sit` row has been redrawn to match the older pixel style.
 - Windows x64 releases can build an installer artifact with `npm run installer:win`, but the v0.2.2 installer is marked unavailable pending the v0.2.3 guided installer fix.
+- Asset validation now reports malformed animation objects and bad `motionY` metadata as structured validation errors instead of crashing during packaging checks.
 
 ## v0.2.3 Development Plan
 
@@ -88,10 +89,13 @@ Planned v0.2.3 improvements and bug fixes:
 - Optimize the Windows installer so it uses a visible guided UI instead of a bare self-extract/install flow.
 - Add a new `sleep` action with matching animation metadata, menu exposure, and compatibility behavior.
 - Fix the menu wake-up behavior so opening the menu does not cover or visually block the desktop pet.
+- Review drag-only animation naming and add compatibility aliases if `happy_run` / `run` are renamed to direction-specific action keys.
+- Redesign or merge single-click and double-click reaction groups so their visual feedback is clearly distinct.
+- Re-evaluate the long thinking / long idle action and remove it if the v0.2.3 animation pass does not need it.
 
 ## Repository Rules
 
-Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended.
+Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended. Deferred review items are tracked in `TODO.md`.
 
 ## Development
 
