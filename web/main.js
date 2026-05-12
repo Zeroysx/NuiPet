@@ -2,6 +2,7 @@
   const pet = document.getElementById("pet");
   const bubble = document.getElementById("bubble");
   const menu = document.getElementById("menu");
+  const actionMenu = document.getElementById("actionMenu");
   const scaleLabel = document.getElementById("scaleLabel");
   const pinToggle = document.getElementById("pinToggle");
   const quit = document.getElementById("quit");
@@ -9,7 +10,10 @@
   const storageKey = "nuipet.settings";
 
   const menuWidth = 194;
-  const menuHeight = 260;
+  const menuPadding = 4;
+  const dragStartDistance = 5;
+  const dragFacingThreshold = 10;
+  const dragFacingDominance = 1.15;
   const fallbackFrame = {
     columns: 1,
     rows: 1,
@@ -53,7 +57,8 @@
   let actionBeforeDrag = null;
   let facing = 1;
   let dragWindowStart = null;
-  let lastDragScreenX = null;
+  let dragFacingAnchorX = null;
+  let dragDirection = "right";
   let menuOpen = false;
   let lastInteractionAt = Date.now();
   let nextIdleAt = lastInteractionAt + 6500;
@@ -68,14 +73,88 @@
     return Math.min(3, Math.max(0.5, Math.round(value * 10) / 10));
   }
 
+  function resolveAction(action) {
+    const aliases = petData && petData.actionAliases;
+    let next = action;
+    const seen = Object.create(null);
+
+    while (aliases && aliases[next] && !seen[next]) {
+      seen[next] = true;
+      next = aliases[next];
+    }
+
+    return next;
+  }
+
+  function normalizeAnimation(action) {
+    const resolvedAction = resolveAction(action);
+    const source = petData && petData.animations && petData.animations[resolvedAction];
+    const fallback = { row: 0, frames: [0], fps: 1 };
+    const animation = source || fallback;
+    const row = Number.isInteger(animation.row) && animation.row >= 0 && animation.row < grid.rows
+      ? animation.row
+      : fallback.row;
+    const frames = Array.isArray(animation.frames)
+      ? animation.frames.filter((frame) => Number.isInteger(frame) && frame >= 0 && frame < grid.columns)
+      : [];
+
+    return {
+      row,
+      frames: frames.length ? frames : fallback.frames,
+      fps: Number.isFinite(animation.fps) && animation.fps > 0 ? animation.fps : fallback.fps,
+      loop: animation.loop,
+      next: animation.next
+    };
+  }
+
+  function isAnimationSafe(action) {
+    const resolvedAction = resolveAction(action);
+    const animation = petData && petData.animations && petData.animations[resolvedAction];
+    if (!animation || !Number.isInteger(animation.row) || animation.row < 0 || animation.row >= grid.rows) {
+      return false;
+    }
+
+    if (!Array.isArray(animation.frames) || !animation.frames.length) {
+      return false;
+    }
+
+    return animation.frames.every((frame) => Number.isInteger(frame) && frame >= 0 && frame < grid.columns);
+  }
+
   function getAnimation(action) {
-    return (petData && petData.animations && petData.animations[action]) ||
-      (petData && petData.animations && petData.animations.idle) ||
-      { row: 0, frames: [0], fps: 1 };
+    if (isAnimationSafe(action)) {
+      return normalizeAnimation(action);
+    }
+
+    if (action !== "idle" && isAnimationSafe("idle")) {
+      return normalizeAnimation("idle");
+    }
+
+    return normalizeAnimation(null);
   }
 
   function hasAnimation(action) {
-    return Boolean(petData && petData.animations && petData.animations[action]);
+    return isAnimationSafe(action);
+  }
+
+  function getDefaultAction() {
+    return resolveAction((petData && petData.defaultAction) || defaults.action);
+  }
+
+  function getDirectionalDragAction(direction) {
+    const actions = petData && petData.dragActionsByDirection;
+    const action = actions && actions[direction];
+    const resolvedAction = resolveAction(action);
+    return hasAnimation(resolvedAction) ? resolvedAction : null;
+  }
+
+  function getDragAction(direction = dragDirection) {
+    const directionalAction = getDirectionalDragAction(direction);
+    if (directionalAction) {
+      return directionalAction;
+    }
+
+    return resolveAction((petData && petData.dragAction) || "happy_run");
   }
 
   function getGroup(name, fallback) {
@@ -116,6 +195,26 @@
     document.documentElement.style.setProperty("--atlas-height", `${grid.rows * grid.frameHeight}px`);
   }
 
+  function getMenuActions() {
+    const actions = petData && Array.isArray(petData.menuActions) ? petData.menuActions : [];
+    return actions.filter((item) => item && hasAnimation(item.action));
+  }
+
+  function renderActionMenu() {
+    if (!actionMenu) {
+      return;
+    }
+
+    actionMenu.textContent = "";
+    getMenuActions().forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.action = item.action;
+      button.textContent = item.label || item.action;
+      actionMenu.appendChild(button);
+    });
+  }
+
   function noteInteraction() {
     const now = Date.now();
     lastInteractionAt = now;
@@ -127,11 +226,55 @@
     document.documentElement.style.setProperty("--facing", String(facing));
   }
 
+  function setDragDirection(direction) {
+    const nextDirection = direction === "left" ? "left" : "right";
+    if (dragDirection === nextDirection && dragging) {
+      return;
+    }
+
+    dragDirection = nextDirection;
+    if (getDirectionalDragAction(nextDirection)) {
+      setFacing(1);
+      if (dragging) {
+        setAction(getDragAction(nextDirection), { persistAction: false });
+      }
+      return;
+    }
+
+    setFacing(nextDirection === "left" ? -1 : 1);
+  }
+
+  function updateDragFacing(event) {
+    if (!pointerStart) {
+      return;
+    }
+
+    const totalX = event.screenX - pointerStart.screenX;
+    const totalY = event.screenY - pointerStart.screenY;
+    const anchorX = dragFacingAnchorX ?? pointerStart.screenX;
+    const anchorDeltaX = event.screenX - anchorX;
+    const dominantHorizontal = Math.abs(totalX) >= Math.abs(totalY) * dragFacingDominance;
+
+    if (!dragging) {
+      if (dominantHorizontal && Math.abs(totalX) >= dragFacingThreshold) {
+        setDragDirection(totalX < 0 ? "left" : "right");
+        dragFacingAnchorX = event.screenX;
+      }
+      return;
+    }
+
+    if (Math.abs(anchorDeltaX) >= dragFacingThreshold) {
+      setDragDirection(anchorDeltaX < 0 ? "left" : "right");
+      dragFacingAnchorX = event.screenX;
+    }
+  }
+
   function resetDragState() {
     dragging = false;
     pointerStart = null;
     dragWindowStart = null;
-    lastDragScreenX = null;
+    dragFacingAnchorX = null;
+    dragDirection = "right";
     pet.classList.remove("is-dragging");
     setFacing(1);
     if (actionBeforeDrag) {
@@ -145,11 +288,28 @@
     return isNeutralino() ? Math.max(1, window.devicePixelRatio || 1) : 1;
   }
 
-  function getWindowSize(extraWidth = 0, extraHeight = 0) {
-    const nativeScale = getNativeScale();
+  function getMenuBounds() {
+    if (!menuOpen) {
+      return { width: 0, height: 0 };
+    }
+
     return {
-      width: Math.ceil((grid.frameWidth * settings.scale + extraWidth) * nativeScale),
-      height: Math.ceil((grid.frameHeight * settings.scale + extraHeight) * nativeScale)
+      width: Math.ceil(menu.offsetWidth || menuWidth),
+      height: Math.ceil(menu.offsetHeight || 0)
+    };
+  }
+
+  function getWindowSize() {
+    const nativeScale = getNativeScale();
+    const framePixelWidth = grid.frameWidth * settings.scale;
+    const framePixelHeight = grid.frameHeight * settings.scale;
+    const menuBounds = getMenuBounds();
+    const width = Math.max(framePixelWidth, menuBounds.width + menuPadding);
+    const height = Math.max(framePixelHeight, menuBounds.height + menuPadding);
+
+    return {
+      width: Math.ceil(width * nativeScale),
+      height: Math.ceil(height * nativeScale)
     };
   }
 
@@ -175,19 +335,7 @@
     }
   }
 
-  function resizeWindowForMenu() {
-    if (!isNeutralino() || !native.window.setSize) {
-      return;
-    }
-
-    const framePixelWidth = grid.frameWidth * settings.scale;
-    const framePixelHeight = grid.frameHeight * settings.scale;
-    const extraWidth = Math.max(0, menuWidth - framePixelWidth);
-    const extraHeight = Math.max(0, menuHeight - framePixelHeight);
-    tryNative(() => native.window.setSize(getWindowSize(extraWidth, extraHeight)));
-  }
-
-  function restoreWindowSize() {
+  function resizeWindowForState() {
     if (!isNeutralino() || !native.window.setSize) {
       return;
     }
@@ -237,15 +385,16 @@
   }
 
   async function setAction(action, options = {}) {
-    if (!hasAnimation(action)) {
+    const resolvedAction = resolveAction(action);
+    if (!hasAnimation(resolvedAction)) {
       return false;
     }
 
     const persistAction = options.persistAction !== false;
-    activeAction = action;
+    activeAction = resolvedAction;
     if (persistAction) {
       actionAfterTransient = null;
-      settings.action = action;
+      settings.action = resolvedAction;
       persist(false);
     }
 
@@ -284,18 +433,20 @@
   }
 
   async function playTransientAction(action, fallbackAction = settings.action) {
-    if (!hasAnimation(action)) {
+    const resolvedAction = resolveAction(action);
+    const resolvedFallback = resolveAction(fallbackAction);
+    if (!hasAnimation(resolvedAction)) {
       return false;
     }
 
-    actionAfterTransient = fallbackAction;
-    await setAction(action, { persistAction: false });
-    const animation = getAnimation(action);
-    if (animation.loop !== false && fallbackAction && fallbackAction !== action) {
+    actionAfterTransient = resolvedFallback;
+    await setAction(resolvedAction, { persistAction: false });
+    const animation = getAnimation(resolvedAction);
+    if (animation.loop !== false && resolvedFallback && resolvedFallback !== resolvedAction) {
       window.setTimeout(() => {
-        if (!dragging && activeAction === action) {
+        if (!dragging && activeAction === resolvedAction) {
           actionAfterTransient = null;
-          setAction(fallbackAction, { persistAction: false });
+          setAction(resolvedFallback, { persistAction: false });
         }
       }, Math.max(700, (animation.frames.length / Math.max(1, animation.fps)) * 1000));
     }
@@ -304,7 +455,7 @@
 
   async function reactToClick() {
     noteInteraction();
-    const reactions = getGroup("clickReactions", ["wave", "jump", "idle_blink", "idle"]);
+    const reactions = getGroup("clickReactions", ["wave", "jump", "idle"]);
     const next = pickAction(reactions, "wave");
     await playTransientAction(next, settings.action);
     playFeedback("is-clicked");
@@ -330,7 +481,7 @@
       return;
     }
 
-    const variants = getGroup("idleVariants", ["idle_blink", "idle_breathe", "idle_look", "idle_stretch", "idle_sit"]);
+    const variants = getGroup("idleVariants", ["idle_breathe", "idle_look", "idle_stretch"]);
     const next = pickAction(variants, null);
     nextIdleAt = now + 6500 + Math.random() * 6500;
     if (!next || next === activeAction) {
@@ -347,11 +498,15 @@
     noteInteraction();
     menu.hidden = false;
     menuOpen = true;
-    resizeWindowForMenu();
-    const maxX = Math.max(0, window.innerWidth - menu.offsetWidth - 4);
-    const maxY = Math.max(0, window.innerHeight - menu.offsetHeight - 4);
-    menu.style.left = `${Math.min(x, maxX)}px`;
-    menu.style.top = `${Math.min(y, maxY)}px`;
+    resizeWindowForState();
+    window.requestAnimationFrame(() => {
+      const safeWidth = Math.max(window.innerWidth, menu.offsetWidth + menuPadding);
+      const safeHeight = Math.max(window.innerHeight, menu.offsetHeight + menuPadding);
+      const maxX = Math.max(0, safeWidth - menu.offsetWidth - menuPadding);
+      const maxY = Math.max(0, safeHeight - menu.offsetHeight - menuPadding);
+      menu.style.left = `${Math.min(x, maxX)}px`;
+      menu.style.top = `${Math.min(y, maxY)}px`;
+    });
   }
 
   function hideMenu() {
@@ -361,7 +516,7 @@
 
     menu.hidden = true;
     menuOpen = false;
-    restoreWindowSize();
+    resizeWindowForState();
   }
 
   function renderFrame(timestamp) {
@@ -370,14 +525,14 @@
 
     if (!lastFrameAt || timestamp - lastFrameAt >= interval) {
       if (animation.loop === false && frameIndex >= animation.frames.length) {
-        const nextAction = actionAfterTransient || animation.next || settings.action || "idle";
+        const nextAction = actionAfterTransient || animation.next || settings.action || getDefaultAction();
         actionAfterTransient = null;
         setAction(nextAction, { persistAction: false });
         requestAnimationFrame(renderFrame);
         return;
       }
 
-      const column = animation.frames[animation.loop === false ? frameIndex : frameIndex % animation.frames.length];
+      const column = animation.frames[animation.loop === false ? frameIndex : frameIndex % animation.frames.length] || 0;
       const row = animation.row;
       pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
       frameIndex += 1;
@@ -465,11 +620,13 @@
       updateGrid();
       await loadSettings();
       if (!hasAnimation(settings.action)) {
-        settings.action = "idle";
+        settings.action = getDefaultAction();
       }
+      settings.action = resolveAction(settings.action);
       activeAction = settings.action;
       updateScale();
       updatePin();
+      renderActionMenu();
       startAnimation();
       persist(true);
       setupTray();
@@ -482,10 +639,11 @@
         }
       };
       updateGrid();
-      settings = Object.assign({}, defaults, { action: "idle" });
+      settings = Object.assign({}, defaults, { action: getDefaultAction() });
       activeAction = settings.action;
       updateScale();
       updatePin();
+      renderActionMenu();
       startAnimation();
     }
   }
@@ -509,7 +667,7 @@
       screenY: event.screenY,
       at: Date.now()
     };
-    lastDragScreenX = event.screenX;
+    dragFacingAnchorX = event.screenX;
     dragWindowStart = isNeutralino() ? await tryNative(() => native.window.getPosition()) : null;
     hideMenu();
   });
@@ -520,24 +678,25 @@
     }
 
     const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
-    if (distance < 4) {
+    if (distance < dragStartDistance) {
       return;
     }
 
     const dx = event.screenX - pointerStart.screenX;
     const dy = event.screenY - pointerStart.screenY;
-    const stepX = event.screenX - (lastDragScreenX ?? pointerStart.screenX);
-    if (Math.abs(stepX) >= 1) {
-      setFacing(stepX < 0 ? -1 : 1);
-      lastDragScreenX = event.screenX;
-    }
+    updateDragFacing(event);
 
     if (!dragging) {
       noteInteraction();
       dragging = true;
       actionBeforeDrag = activeAction;
+      updateDragFacing(event);
+      if (Math.abs(dx) >= 3) {
+        setDragDirection(dx < 0 ? "left" : "right");
+      }
       pet.classList.add("is-dragging");
-      setAction("walk", { persistAction: false });
+      setDragDirection(dragDirection);
+      setAction(getDragAction(), { persistAction: false });
       showBubble(nextBubbleText("dragStart"), 1100);
     }
 
@@ -618,6 +777,7 @@
     if (button.dataset.scale) {
       settings.scale += button.dataset.scale === "+" ? 0.1 : -0.1;
       updateScale();
+      resizeWindowForState();
       persist(true);
     }
   });

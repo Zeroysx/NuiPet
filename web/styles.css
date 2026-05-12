@@ -114,6 +114,10 @@ button {
   display: none;
 }
 
+.menu-actions {
+  display: contents;
+}
+
 .menu button,
 .menu-row {
   min-height: 30px;
