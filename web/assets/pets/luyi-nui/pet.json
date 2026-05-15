@@ -11,8 +11,8 @@
   },
   "animations": {
     "idle": { "row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "happy_run": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
-    "run": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
+    "run_right": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
+    "run_left": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
     "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
     "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8, "motionY": [0, -18, -34, -18, 0] },
     "cry": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
@@ -20,11 +20,13 @@
     "walk": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 7 },
     "think": { "row": 8, "frames": [0, 1, 2, 3, 3, 3, 4, 5], "fps": 4 },
     "idle_long": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4, "loop": false, "next": "idle" },
+    "sleep": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 3 },
     "nod": { "row": 11, "frames": [0, 1, 2, 3, 4, 5], "fps": 5, "loop": false, "next": "idle" },
     "sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 }
   },
   "actionAliases": {
-    "sleep": "cry",
+    "happy_run": "run_right",
+    "run": "run_left",
     "idle_sit": "sit",
     "wake": "idle_alt",
     "blink": "think",
@@ -32,41 +34,42 @@
     "idle_look": "think",
     "idle_stretch": "nod",
     "idle_blink": "think",
-    "walk_drag": "happy_run"
+    "walk_drag": "run_right"
   },
   "menuActions": [
     { "action": "idle", "label": "待机" },
     { "action": "wave", "label": "挥手" },
     { "action": "jump", "label": "跳跃" },
     { "action": "cry", "label": "哭哭" },
+    { "action": "sleep", "label": "休眠" },
     { "action": "idle_alt", "label": "待机2" },
     { "action": "walk", "label": "轻快小跑" },
     { "action": "think", "label": "思考" },
-    { "action": "idle_long", "label": "长待机" },
     { "action": "nod", "label": "点头" },
     { "action": "sit", "label": "坐下" }
   ],
   "dragActionsByDirection": {
-    "right": "happy_run",
-    "left": "run"
+    "right": "run_right",
+    "left": "run_left"
   },
-  "dragActions": ["happy_run", "run"],
-  "dragAction": "happy_run",
+  "dragActions": ["run_right", "run_left"],
+  "dragAction": "run_right",
   "defaultAction": "idle",
   "actionNotes": {
-    "happy_run": "Drag-only running variant; removed from menu.",
-    "run": "Drag-only running variant; removed from menu.",
+    "run_right": "Drag-only right-facing running variant; renamed from happy_run.",
+    "run_left": "Drag-only left-facing running variant; renamed from run.",
     "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
+    "sleep": "Dedicated sleep animation row used by the v0.2.3 menu and idle scheduler.",
     "idle_alt": "Former wake row; visually closer to a second idle action.",
     "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.",
-    "idle_long": "Former breathe row; visually closer to a longer idle action.",
+    "idle_long": "Former breathe row; retained for compatibility but removed from menu and idle pools.",
     "nod": "Former stretch row; blank trailing frames removed.",
     "idle_blink": "Alias to the single retained thinking action."
   },
   "animationGroups": {
-    "idleVariants": ["idle_alt", "idle_long", "think", "nod", "sit"],
-    "clickReactions": ["wave", "jump", "think"],
-    "doubleClickReactions": ["jump", "nod", "idle_alt"]
+    "idleVariants": ["idle_alt", "sleep", "think", "nod", "sit"],
+    "clickReactions": ["wave", "think", "idle_alt"],
+    "doubleClickReactions": ["jump", "nod"]
   },
   "bubbleText": {
     "click": [

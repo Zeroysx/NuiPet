@@ -102,3 +102,12 @@
 
 - 在 README 中记录 `v0.2.4` 动画讨论队列。
 - 明确 Issue 讨论保留在 GitHub，`TODO.md` 只记录代码任务。
+- Started `v0.2.3` development on `codex/v0.2.3-development`.
+- Updated package and Neutralino metadata to `0.2.3`.
+- Removed the unsupported IExpress installer fallback so `npm run installer:win` now requires the guided Inno Setup path.
+- Added the dedicated `sleep` action from atlas row 10, exposed it in the menu, and added it to automatic idle variants.
+- Renamed drag-only run actions to `run_right` and `run_left` while retaining compatibility aliases for old action keys.
+- Docked the right-click menu beside the pet so opening the menu no longer covers the sprite.
+- Split single-click and double-click reaction animation groups so their visual feedback does not overlap.
+- Removed `idle_long` from menu and automatic idle pools while retaining the compatibility alias path.
+- Cleared completed v0.2.2 review follow-up code tasks from `TODO.md`.
