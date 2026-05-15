@@ -93,9 +93,13 @@ Planned v0.2.3 improvements and bug fixes:
 - Redesign or merge single-click and double-click reaction groups so their visual feedback is clearly distinct.
 - Re-evaluate the long thinking / long idle action and remove it if the v0.2.3 animation pass does not need it.
 
+## v0.2.4 Discussion Queue
+
+GitHub Issue #4 用于跟踪 `v0.2.4` 动画改良讨论。当前需要在甩动、摔落等边界清晰的物理效果，和更多交互 / 待机动画之间确定优先级；新动作创意、触发方式、气泡文本和实现逻辑继续保留在 Issue 讨论中，`TODO.md` 只记录明确的代码任务。
+
 ## Repository Rules
 
-Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended. Deferred review items are tracked in `TODO.md`.
+Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended. Deferred code tasks are tracked in `TODO.md`.
 
 ## Development
 

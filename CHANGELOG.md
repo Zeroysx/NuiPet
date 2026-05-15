@@ -97,3 +97,8 @@
 - Added a header comment to the Windows installer build script.
 - Replaced one unnatural idle bubble text entry.
 - Added `TODO.md` for deferred PR review follow-ups and expanded the v0.2.3 plan with the non-blocking animation design items.
+
+## 2026-05-16
+
+- 在 README 中记录 `v0.2.4` 动画讨论队列。
+- 明确 Issue 讨论保留在 GitHub，`TODO.md` 只记录代码任务。
