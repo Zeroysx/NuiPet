@@ -106,6 +106,7 @@
 - Updated package and Neutralino metadata to `0.2.3`.
 - Removed the unsupported IExpress installer fallback so `npm run installer:win` now requires the guided Inno Setup path.
 - Added the dedicated `sleep` action from atlas row 10, exposed it in the menu, and added it to automatic idle variants.
+- Replaced atlas row 10 with a generated eight-frame sleep animation row.
 - Renamed drag-only run actions to `run_right` and `run_left` while retaining compatibility aliases for old action keys.
 - Docked the right-click menu beside the pet so opening the menu no longer covers the sprite.
 - Recalculated the docked menu position during scale changes so the menu no longer follows stale pet-scale bounds or gets clipped.
