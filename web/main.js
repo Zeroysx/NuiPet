@@ -192,6 +192,9 @@
     settings.scale = clampScale(settings.scale);
     document.documentElement.style.setProperty("--scale", String(settings.scale));
     scaleLabel.textContent = `${Math.round(settings.scale * 100)}%`;
+    if (menuOpen) {
+      dockMenu();
+    }
     renderCurrentFrame();
   }
 

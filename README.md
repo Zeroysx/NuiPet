@@ -90,6 +90,7 @@ Implemented v0.2.3 improvements and bug fixes:
 - Windows x64 releases now require Inno Setup for the visible guided installer; the unsupported IExpress fallback has been removed.
 - The dedicated `sleep` action uses atlas row 10, appears in the menu as `休眠`, and can be selected by the automatic idle scheduler.
 - Opening the right-click menu docks it beside the desktop pet and expands the native window width instead of covering the sprite.
+- Scaling while the right-click menu is open recalculates the docked menu position before resizing the native window, so the menu remains unscaled and unclipped.
 - Drag-only animations are renamed to `run_right` and `run_left`; old `happy_run`, `run`, and `walk_drag` keys remain compatibility aliases.
 - Single-click and double-click reactions use distinct animation groups so their feedback does not overlap.
 - `idle_long` is removed from the menu and idle scheduler, but remains available through the old `idle_breathe` compatibility alias.

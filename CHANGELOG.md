@@ -108,6 +108,7 @@
 - Added the dedicated `sleep` action from atlas row 10, exposed it in the menu, and added it to automatic idle variants.
 - Renamed drag-only run actions to `run_right` and `run_left` while retaining compatibility aliases for old action keys.
 - Docked the right-click menu beside the pet so opening the menu no longer covers the sprite.
+- Recalculated the docked menu position during scale changes so the menu no longer follows stale pet-scale bounds or gets clipped.
 - Split single-click and double-click reaction animation groups so their visual feedback does not overlap.
 - Removed `idle_long` from menu and automatic idle pools while retaining the compatibility alias path.
 - Cleared completed v0.2.2 review follow-up code tasks from `TODO.md`.
