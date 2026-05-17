@@ -18,6 +18,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - Single-click, double-click, drag start, drag end, idle, and menu interactions use categorized Chinese bubble text pools.
 - Idle micro-actions play automatically after a short quiet period without overriding a recent drag or menu-selected action.
 - Visual feedback includes click pop, double-click hop, drag highlighting, drop squash, and bubble entrance animation.
+- The `jump` action uses metadata-driven y-axis motion so the sprite visibly lifts and lands during playback.
 - Dragging temporarily plays the direction-specific drag running animation and restores the previous action after the drag ends.
 - The drag animation flips horizontally when dragging left so the pet faces the drag direction.
 - Drag-facing direction uses direction-specific run rows plus a small accumulated horizontal threshold, so pointer jitter at drag start does not flip the pet the wrong way.
@@ -28,6 +29,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - Click reactions rotate through a small Chinese text pool based on 鹿弈Nui references.
 - Animation and menu actions are resilient to Neutralino storage/window API failures, so native persistence problems do not freeze the pet on the first frame.
 - System tray menu for show/hide and quit.
+- The right-click menu and tray quit actions share the same native exit path.
 - Persisted settings for action, scale, always-on-top, and last known window position.
 
 ## Animation Triggers
@@ -38,7 +40,7 @@ Current action keys and trigger conditions:
 - `happy_run`: Drag-only running variant. It is not shown in the right-click menu.
 - `run`: Drag-only running variant. It is not shown in the right-click menu.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
-- `jump`: Can be selected from the right-click menu, can be picked randomly as a single-click reaction, and can be picked randomly as a double-click reaction.
+- `jump`: Can be selected from the right-click menu, can be picked randomly as a single-click reaction, and can be picked randomly as a double-click reaction. It defines `motionY` offsets for the visible jump arc.
 - `cry`: Can be selected from the right-click menu.
 - `idle_alt`: Can be selected from the right-click menu and can be picked randomly as an idle variant. This replaces the old `wake` label.
 - `walk`: Can be selected from the right-click menu and is labeled as a light jog because the row visually matches running more than walking.
@@ -69,18 +71,31 @@ Known remaining asset work:
 
 - Row 12 has been replaced with a generated sitting animation and is now exposed as `sit`; the row is cleared before replacement so old frames do not stack under the sitting frames.
 
-## v0.2.2 Development Plan
+## v0.2.2 Development Notes
 
-Planned v0.2.2 improvements and bug fixes:
+Implemented v0.2.2 improvements and packaging work:
 
-- Optimize the jump animation by moving the sprite on the y-axis during playback so the action reads as a more natural jump instead of only cycling frames in place.
-- Fix the quit menu action so closing the desktop pet fully terminates the Neutralino process instead of only hiding or leaving the process alive.
-- Polish the right-click menu visual design while keeping the compact desktop-pet control surface.
-- Remove or repair remaining green-screen/chroma-key pixel residue in affected animation frames.
+- The jump animation now reads optional per-frame `motionY` metadata and moves on the y-axis during playback.
+- The right-click menu and tray quit actions both use the same Neutralino native exit path.
+- The right-click menu has a tighter polished visual style, compact two-column action grid, focus state, and safer text overflow handling.
+- The current spritesheet has been cleaned of strong green-screen/chroma-key residue pixels, and the `sit` row has been redrawn to match the older pixel style.
+- Windows x64 releases can build an installer artifact with `npm run installer:win`, but the v0.2.2 installer is marked unavailable pending the v0.2.3 guided installer fix.
+- Asset validation now reports malformed animation objects and bad `motionY` metadata as structured validation errors instead of crashing during packaging checks.
+
+## v0.2.3 Development Plan
+
+Planned v0.2.3 improvements and bug fixes:
+
+- Optimize the Windows installer so it uses a visible guided UI instead of a bare self-extract/install flow.
+- Add a new `sleep` action with matching animation metadata, menu exposure, and compatibility behavior.
+- Fix the menu wake-up behavior so opening the menu does not cover or visually block the desktop pet.
+- Review drag-only animation naming and add compatibility aliases if `happy_run` / `run` are renamed to direction-specific action keys.
+- Redesign or merge single-click and double-click reaction groups so their visual feedback is clearly distinct.
+- Re-evaluate the long thinking / long idle action and remove it if the v0.2.3 animation pass does not need it.
 
 ## Repository Rules
 
-Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended.
+Do not work directly on `main`. Create a branch for every change and merge only after review. Every completed edit must update both this README and `CHANGELOG.md`; changelog updates must be appended. Deferred review items are tracked in `TODO.md`.
 
 ## Development
 
@@ -90,6 +105,7 @@ Prerequisites:
 - Neutralinojs CLI: `npm install -g @neutralinojs/neu`.
 - This workspace can run `neu` through `scripts/neu-runner.js`, which uses `D:\environment\HuaWei\Node\node.exe` when the older default Node 14 runtime cannot start the latest CLI.
 - Neutralino runtime/client `6.7.0` or newer. Older `5.6.0` binaries crashed on this Windows/WebView2 environment during window startup.
+- Inno Setup 6 for Windows installer builds. If `ISCC.exe` is not in `PATH`, set `ISCC_EXE` to its full path before running the installer command.
 
 Common commands:
 
@@ -106,6 +122,7 @@ The package scripts wrap those commands:
 npm run neu:update
 npm run neu:run
 npm run neu:build
+npm run installer:win
 ```
 
 If the app starts and keeps running during a test, close it from the pet menu or Windows tray before starting another `neu run` session.
@@ -115,6 +132,8 @@ On high-DPI Windows displays, the app sizes the native window with `devicePixelR
 If a native API call fails, the pet continues animating and logs the failure to the WebView console instead of blocking startup.
 
 `npm run build:web` verifies that required web, pet metadata, sprite, app icon, and tray icon assets are present before packaging.
+
+`npm run installer:win` expects `npm run neu:build` to have produced `dist/NuiPet/NuiPet-win_x64.exe` and `dist/NuiPet/resources.neu`. It copies those files plus `README.md`, `LICENSE`, and `THIRD_PARTY_NOTICES.md` into `releases/v0.2.2/`, then emits `NuiPet-v0.2.2-setup.exe`. Inno Setup is preferred when available; otherwise the script falls back to Windows IExpress and creates a per-user executable installer. The archived v0.2.2 installer is not a supported download; use the portable `NuiPet-win_x64.exe` and `resources.neu` pair instead.
 
 The frontend is intentionally framework-free. `web/main.js` renders the pet and uses Neutralino APIs when running inside the desktop shell. Browser preview falls back to `localStorage`.
 
@@ -142,6 +161,6 @@ The intended remote is a private repository at `Zeroysx/NuiPet`. Development sho
 
 ## Releases
 
-Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.2.1/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
+Packaged release builds are stored under `releases/`, with one subdirectory per version. The current Windows x64 package is in `releases/v0.2.2/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The v0.2.2 release directory also includes `NuiPet-v0.2.2-setup.exe` for archival review, but the installer is marked unavailable and should not be used for distribution. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
 
 GitHub release `v0.1.0` publishes the same Windows x64 package files as release assets.

@@ -72,3 +72,28 @@
 - Added a transparent always-on-top pet window with sprite animation, custom context menu, tray actions, and persisted settings.
 - Added 鹿弈Nui sprite assets and metadata with a reserved-rights asset licensing boundary.
 - Added asset validation notes and corrected the license asset boundary wording.
+
+## 2026-05-08
+
+- Started `v0.2.2` development on `codex/v0.2.2-installer-and-polish`.
+- Updated package and Neutralino metadata to `0.2.2`.
+- Added metadata-driven `jump` y-axis motion so the action visibly lifts and lands during playback.
+- Unified right-click and tray quit behavior through the same Neutralino native exit path.
+- Polished the compact right-click menu styling, focus state, and text overflow handling.
+- Cleaned strong green-screen/chroma-key residue pixels from the current spritesheet.
+- Added Inno Setup installer packaging with `npm run installer:win`, `installer/NuiPet.iss`, and `releases/v0.2.2/`.
+- Added third-party notices for packaged Neutralinojs runtime distribution.
+- Redrew the `cry` animation row in the older hard-edged pixel style and removed remaining green-screen residue from the atlas.
+- Added a Windows IExpress fallback so `npm run installer:win` can produce `NuiPet-v0.2.2-setup.exe` even when Inno Setup is not installed.
+- Corrected the animation-style target from `cry` to `sit` and redrew the sitting row to match the older hard-edged pixel style.
+- Replaced the failed stitched `sit` redraw with a coherent pixelized sitting row to fix head/body alignment artifacts.
+- Replaced the faulty patched `cry` face and rebuilt `sit` with nearest-neighbor pixelation instead of blur-based scaling.
+
+## 2026-05-10
+
+- Added the v0.2.3 development plan for a guided installer UI, a new `sleep` action, and the menu-over-pet wake-up bug.
+- Marked the archived `v0.2.2` installer as unavailable and documented the portable Windows x64 package as the supported release package.
+- Hardened asset validation so invalid animation objects and malformed `motionY` metadata report structured errors instead of crashing.
+- Added a header comment to the Windows installer build script.
+- Replaced one unnatural idle bubble text entry.
+- Added `TODO.md` for deferred PR review follow-ups and expanded the v0.2.3 plan with the non-blocking animation design items.
