@@ -88,7 +88,7 @@ Implemented v0.2.2 improvements and packaging work:
 Implemented v0.2.3 improvements and bug fixes:
 
 - Windows x64 releases now require Inno Setup for the visible guided installer; the unsupported IExpress fallback has been removed.
-- The dedicated `sleep` action uses a generated atlas row 10 sleep animation, appears in the menu as `休眠`, and can be selected by the automatic idle scheduler.
+- The dedicated `sleep` action uses a row 10 prone sleeping animation with a small attached `Z` cue, appears in the menu as `休眠`, and can be selected by the automatic idle scheduler. It transitions from standing into a consistent left-facing lying pose, fixes the second-frame lowered knees into smooth exposed knees, holds the sleeping frames longer, then returns to `idle` after playback.
 - Opening the right-click menu docks it beside the desktop pet and expands the native window width instead of covering the sprite.
 - Scaling while the right-click menu is open recalculates the docked menu position before resizing the native window, so the menu remains unscaled and unclipped.
 - Drag-only animations are renamed to `run_right` and `run_left`; old `happy_run`, `run`, and `walk_drag` keys remain compatibility aliases.
@@ -167,6 +167,6 @@ The intended remote is a private repository at `Zeroysx/NuiPet`. Development sho
 
 ## Releases
 
-Packaged release builds are stored under `releases/`, with one subdirectory per version. The current archived Windows x64 package is in `releases/v0.2.2/` and must keep `NuiPet-win_x64.exe` next to `resources.neu`. The v0.2.2 release directory also includes `NuiPet-v0.2.2-setup.exe` for archival review, but that installer is marked unavailable and should not be used for distribution. New installer builds should use the v0.2.3 guided Inno Setup path. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
+Packaged release builds are stored under `releases/`, with one subdirectory per version. The current archived Windows x64 package is in `releases/v0.2.3/` and includes the guided `NuiPet-v0.2.3-setup.exe` installer plus the portable files `NuiPet-win_x64.exe` and `resources.neu`. New installer builds should use the v0.2.3 guided Inno Setup path. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
 
 GitHub release `v0.1.0` publishes the same Windows x64 package files as release assets.

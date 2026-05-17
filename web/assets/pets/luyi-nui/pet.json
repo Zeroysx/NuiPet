@@ -20,7 +20,7 @@
     "walk": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 7 },
     "think": { "row": 8, "frames": [0, 1, 2, 3, 3, 3, 4, 5], "fps": 4 },
     "idle_long": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4, "loop": false, "next": "idle" },
-    "sleep": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 3 },
+    "sleep": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 7], "fps": 2, "loop": false, "next": "idle" },
     "nod": { "row": 11, "frames": [0, 1, 2, 3, 4, 5], "fps": 5, "loop": false, "next": "idle" },
     "sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 }
   },
@@ -59,7 +59,7 @@
     "run_right": "Drag-only right-facing running variant; renamed from happy_run.",
     "run_left": "Drag-only left-facing running variant; renamed from run.",
     "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
-    "sleep": "Dedicated sleep animation row used by the v0.2.3 menu and idle scheduler.",
+    "sleep": "Dedicated v0.2.3 prone sleep row with a small attached Z cue and a longer closed-eye hold.",
     "idle_alt": "Former wake row; visually closer to a second idle action.",
     "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.",
     "idle_long": "Former breathe row; retained for compatibility but removed from menu and idle pools.",
