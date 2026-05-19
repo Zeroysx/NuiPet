@@ -124,3 +124,8 @@
 - Regenerated the prone `sleep` row so the lowering and sleeping frames keep the same left-facing body direction.
 - Removed an extra white knee-pad fragment from the second `sleep` animation frame.
 - Corrected the second `sleep` frame cleanup so both lowered front knees render as smooth exposed knees instead of white pad-like shapes.
+
+## 2026-05-20
+
+- Added the v0.3.0 development plan covering improved pet physics, drag inertia, vertical lift and fall behavior, animation smoothing, menu positioning, and Windows tray icon menu access.
+- Added long-term roadmap items for Android and Mac ports, autonomous pet movement, and window interaction capabilities.

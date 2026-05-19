@@ -145,6 +145,25 @@ The frontend is intentionally framework-free. `web/main.js` renders the pet and 
 
 Neutralino executable icons use the project-relative `applicationIcon` path. The tray icon uses a runtime resource URL from the `web` document root.
 
+## 开发计划
+
+### v0.3.0 阶段目标
+
+本阶段开发目标是为桌宠提供更好的物理效果，并修复上个版本存在的一些问题。
+
+- 新增桌宠水平拖动惯性效果，必要时创建对应的滑行动画。
+- 新增桌宠垂直提起与坠落效果，并与竖直调整桌宠位置的交互明确区分。
+- 修复轻快小跑动画动作生硬的问题；备选方案是为动画添加 x 轴移动效果，并完善移动帧。
+- 修复菜单默认出现在模型右边时，在模型靠近屏幕右边界会出现的位置错误。
+- 新增 Windows 菜单栏小图标，并支持通过右键小图标唤起菜单。
+
+### 长期计划
+
+- Android 端桌宠移植。
+- Mac 端桌宠移植。
+- 桌宠自主移动能力。
+- 桌宠与窗口交互的能力。
+
 ## Assets And Licensing
 
 The source code is MIT licensed. The 鹿弈Nui character artwork, sprite sheet, character name, likeness, and related brand assets are not included in that license unless a separate written license explicitly grants those rights.
