@@ -97,3 +97,30 @@
 - Added a header comment to the Windows installer build script.
 - Replaced one unnatural idle bubble text entry.
 - Added `TODO.md` for deferred PR review follow-ups and expanded the v0.2.3 plan with the non-blocking animation design items.
+
+## 2026-05-16
+
+- 在 README 中记录 `v0.2.4` 动画讨论队列。
+- 明确 Issue 讨论保留在 GitHub，`TODO.md` 只记录代码任务。
+- Started `v0.2.3` development on `codex/v0.2.3-development`.
+- Updated package and Neutralino metadata to `0.2.3`.
+- Removed the unsupported IExpress installer fallback so `npm run installer:win` now requires the guided Inno Setup path.
+- Added the dedicated `sleep` action from atlas row 10, exposed it in the menu, and added it to automatic idle variants.
+- Replaced atlas row 10 with a generated eight-frame sleep animation row.
+- Cleared semi-transparent background residue from the generated row 10 sleep animation without recoloring the character pixels.
+- Renamed drag-only run actions to `run_right` and `run_left` while retaining compatibility aliases for old action keys.
+- Docked the right-click menu beside the pet so opening the menu no longer covers the sprite.
+- Recalculated the docked menu position during scale changes so the menu no longer follows stale pet-scale bounds or gets clipped.
+- Split single-click and double-click reaction animation groups so their visual feedback does not overlap.
+- Removed `idle_long` from menu and automatic idle pools while retaining the compatibility alias path.
+- Cleared completed v0.2.2 review follow-up code tasks from `TODO.md`.
+
+## 2026-05-18
+
+- Built and archived the Windows x64 `v0.2.3` portable release package under `releases/v0.2.3/`.
+- Built the guided Inno Setup installer `NuiPet-v0.2.3-setup.exe` for the archived Windows x64 release package.
+- Rebuilt the `sleep` row from idle-scale frames, made it a longer non-looping rest sequence, and returned it to `idle` after playback.
+- Redesigned the `sleep` row as a prone sleeping animation with a small attached `Z` cue while preserving idle-scale standing entry and exit frames.
+- Regenerated the prone `sleep` row so the lowering and sleeping frames keep the same left-facing body direction.
+- Removed an extra white knee-pad fragment from the second `sleep` animation frame.
+- Corrected the second `sleep` frame cleanup so both lowered front knees render as smooth exposed knees instead of white pad-like shapes.

@@ -11,6 +11,7 @@
 
   const menuWidth = 194;
   const menuPadding = 4;
+  const menuDockGap = 8;
   const dragStartDistance = 5;
   const dragFacingThreshold = 10;
   const dragFacingDominance = 1.15;
@@ -165,7 +166,7 @@
       return directionalAction;
     }
 
-    return resolveAction((petData && petData.dragAction) || "happy_run");
+    return resolveAction((petData && petData.dragAction) || "run_right");
   }
 
   function getGroup(name, fallback) {
@@ -191,6 +192,9 @@
     settings.scale = clampScale(settings.scale);
     document.documentElement.style.setProperty("--scale", String(settings.scale));
     scaleLabel.textContent = `${Math.round(settings.scale * 100)}%`;
+    if (menuOpen) {
+      dockMenu();
+    }
     renderCurrentFrame();
   }
 
@@ -316,13 +320,23 @@
     };
   }
 
+  function getFramePixelSize() {
+    return {
+      width: grid.frameWidth * settings.scale,
+      height: grid.frameHeight * settings.scale
+    };
+  }
+
   function getWindowSize() {
     const nativeScale = getNativeScale();
-    const framePixelWidth = grid.frameWidth * settings.scale;
-    const framePixelHeight = grid.frameHeight * settings.scale;
+    const frame = getFramePixelSize();
     const menuBounds = getMenuBounds();
-    const width = Math.max(framePixelWidth, menuBounds.width + menuPadding);
-    const height = Math.max(framePixelHeight, menuBounds.height + menuPadding);
+    const width = menuOpen
+      ? frame.width + menuDockGap + menuBounds.width + menuPadding
+      : frame.width;
+    const height = menuOpen
+      ? Math.max(frame.height, menuBounds.height + menuPadding)
+      : frame.height;
 
     return {
       width: Math.ceil(width * nativeScale),
@@ -482,7 +496,7 @@
 
   async function reactToClick() {
     noteInteraction();
-    const reactions = getGroup("clickReactions", ["wave", "jump", "idle"]);
+    const reactions = getGroup("clickReactions", ["wave", "think", "idle_alt"]);
     const next = pickAction(reactions, "wave");
     await playTransientAction(next, settings.action);
     playFeedback("is-clicked");
@@ -491,7 +505,7 @@
 
   async function reactToDoubleClick() {
     noteInteraction();
-    const reactions = getGroup("doubleClickReactions", ["jump", "idle_stretch", "wake"]);
+    const reactions = getGroup("doubleClickReactions", ["jump", "nod"]);
     const next = pickAction(reactions, "jump");
     await playTransientAction(next, settings.action);
     playFeedback("is-double-clicked");
@@ -521,18 +535,25 @@
     }
   }
 
-  function showMenu(x, y) {
+  function dockMenu() {
+    const frame = getFramePixelSize();
+    const menuHeight = menu.offsetHeight || 0;
+    const availableHeight = Math.max(frame.height, menuHeight);
+    const top = Math.max(0, Math.round((availableHeight - menuHeight) / 2));
+
+    menu.style.left = `${Math.ceil(frame.width + menuDockGap)}px`;
+    menu.style.top = `${top}px`;
+  }
+
+  function showMenu() {
     noteInteraction();
     menu.hidden = false;
     menuOpen = true;
+    dockMenu();
     resizeWindowForState();
     window.requestAnimationFrame(() => {
-      const safeWidth = Math.max(window.innerWidth, menu.offsetWidth + menuPadding);
-      const safeHeight = Math.max(window.innerHeight, menu.offsetHeight + menuPadding);
-      const maxX = Math.max(0, safeWidth - menu.offsetWidth - menuPadding);
-      const maxY = Math.max(0, safeHeight - menu.offsetHeight - menuPadding);
-      menu.style.left = `${Math.min(x, maxX)}px`;
-      menu.style.top = `${Math.min(y, maxY)}px`;
+      dockMenu();
+      resizeWindowForState();
     });
   }
 
@@ -681,7 +702,7 @@
 
   pet.addEventListener("contextmenu", (event) => {
     event.preventDefault();
-    showMenu(event.clientX, event.clientY);
+    showMenu();
   });
 
   pet.addEventListener("pointerdown", async (event) => {
