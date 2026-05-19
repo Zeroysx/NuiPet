@@ -124,3 +124,4 @@
 - Regenerated the prone `sleep` row so the lowering and sleeping frames keep the same left-facing body direction.
 - Removed an extra white knee-pad fragment from the second `sleep` animation frame.
 - Corrected the second `sleep` frame cleanup so both lowered front knees render as smooth exposed knees instead of white pad-like shapes.
+- Corrected release README author attribution to `暮逝的晚河（Wanhe）`.

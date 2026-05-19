@@ -163,7 +163,7 @@ The closed-source distribution policy does not change the separate reserved-righ
 
 ## GitHub
 
-The intended remote is a private repository at `Zeroysx/NuiPet`. Development should happen on `feature/bootstrap-nuipet` or another reviewed feature branch, then be merged into `main` after review.
+The intended remote is a private repository at `Zeroysx/NuiPet`. Development should happen on `feature/bootstrap-nuipet` or another reviewed feature branch, then be merged into `main` after review. Release README author attribution should use `暮逝的晚河（Wanhe）`.
 
 ## Releases
 
