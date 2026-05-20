@@ -3,6 +3,8 @@
   --frame-height: 208px;
   --scale: 1;
   --facing: 1;
+  --pet-offset-x: 0px;
+  --action-offset-x: 0px;
   --action-offset-y: 0px;
   --atlas-width: 1536px;
   --atlas-height: 1872px;
@@ -46,7 +48,7 @@ button {
   background-repeat: no-repeat;
   background-size: var(--atlas-width) var(--atlas-height);
   image-rendering: pixelated;
-  translate: 0 var(--action-offset-y);
+  translate: calc(var(--pet-offset-x) + var(--action-offset-x)) var(--action-offset-y);
   transform: scaleX(var(--facing)) scale(var(--scale));
   transform-origin: center center;
   cursor: grab;
@@ -72,6 +74,11 @@ button {
 
 .pet.is-dropped {
   animation: pet-drop 220ms ease-out;
+}
+
+.pet.is-falling {
+  animation: pet-fall 360ms ease-in-out infinite;
+  filter: saturate(1.08) drop-shadow(0 5px 0 rgba(0, 0, 0, 0.16));
 }
 
 .bubble {
@@ -220,6 +227,18 @@ button {
   }
   100% {
     transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+  }
+}
+
+@keyframes pet-fall {
+  0% {
+    transform: scaleX(var(--facing)) translateY(-4px) rotate(-1deg) scale(var(--scale));
+  }
+  45% {
+    transform: scaleX(var(--facing)) translateY(4px) rotate(1deg) scale(calc(var(--scale) * 0.98));
+  }
+  100% {
+    transform: scaleX(var(--facing)) translateY(-2px) rotate(0deg) scale(var(--scale));
   }
 }
 

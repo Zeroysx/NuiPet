@@ -129,3 +129,13 @@
 
 - Added the v0.3.0 development plan covering improved pet physics, drag inertia, vertical lift and fall behavior, animation smoothing, menu positioning, and Windows tray icon menu access.
 - Added long-term roadmap items for Android and Mac ports, autonomous pet movement, and window interaction capabilities.
+- Updated package and Neutralino metadata to `0.3.0`.
+- Added drag-release physics for horizontal inertia, vertical lift-and-fall movement, and damped landing after fast throws.
+- Added optional `motionX` animation metadata, validation, and a small light-jog x-axis smoothing track.
+- Reworked right-click menu docking so the menu can open on the left near the right screen edge without persisting the temporary window offset.
+- Expanded the Windows tray menu to expose show/hide, action switching, always-on-top, and quit.
+- Clamped restored, dragged, and thrown pet window positions to the primary display so the pet cannot disappear beyond desktop edges.
+- Added runtime tray icon extraction to a temporary PNG file, simplified tray menu item IDs, and kept the visible falling animation that lands at the pre-drag height after fast vertical throws.
+- Marked the packaged Windows tray icon display failure as an unresolved v0.3.0 BUG in the development plan.
+- Added a physics-only `fall` action that plays descending jump poses during fast vertical release, then restores the previous action on landing.
+- Replaced the temporary descending-jump `fall` placeholder with a subagent-generated independent falling spritesheet row on atlas row 13.

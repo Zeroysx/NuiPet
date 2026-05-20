@@ -19,16 +19,20 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - Idle micro-actions play automatically after a short quiet period without overriding a recent drag or menu-selected action.
 - Visual feedback includes click pop, double-click hop, drag highlighting, drop squash, and bubble entrance animation.
 - The `jump` action uses metadata-driven y-axis motion so the sprite visibly lifts and lands during playback.
+- Animation metadata can define optional `motionX` and `motionY` frame offsets for small in-place movement fixes without adding new atlas rows.
 - Dragging temporarily plays the `run_right` or `run_left` drag running animation and restores the previous action after the drag ends.
 - The drag animation flips horizontally when dragging left so the pet faces the drag direction.
 - Drag-facing direction uses direction-specific run rows plus a small accumulated horizontal threshold, so pointer jitter at drag start does not flip the pet the wrong way.
 - Dragging is implemented with explicit window movement instead of native drag handoff, which keeps animation direction and always-on-top state consistent.
+- Fast drag release can trigger short horizontal inertia or vertical lift-and-fall physics while slow release remains a normal position adjustment.
+- Dragging, throw physics, and saved window restoration clamp the pet inside the primary display so it cannot disappear beyond the desktop edge.
 - The window expands while the right-click menu is open so the menu docks beside the pet instead of covering it.
+- The right-click menu can dock to the left when the pet is near the right screen edge, then restore the pet anchor position after closing.
 - Drag movement uses the display scale factor, so the window follows the cursor correctly on high-DPI displays.
 - Drag-facing direction updates from the latest pointer movement, so reversing direction mid-drag flips the animation immediately.
 - Click reactions rotate through a small Chinese text pool based on 鹿弈Nui references.
 - Animation and menu actions are resilient to Neutralino storage/window API failures, so native persistence problems do not freeze the pet on the first frame.
-- System tray menu for show/hide and quit.
+- System tray menu for show/hide, action switching, always-on-top, and quit.
 - The right-click menu and tray quit actions share the same native exit path.
 - Persisted settings for action, scale, always-on-top, and last known window position.
 
@@ -41,6 +45,7 @@ Current action keys and trigger conditions:
 - `run_left`: Drag-only left-facing running variant. It is not shown in the right-click menu. The old `run` key remains a compatibility alias.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
 - `jump`: Can be selected from the right-click menu and can be picked randomly as a double-click reaction. It defines `motionY` offsets for the visible jump arc.
+- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated falling row on atlas row 13 and is not shown in the right-click menu.
 - `cry`: Can be selected from the right-click menu.
 - `sleep`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler. This is a dedicated v0.2.3 sleep action instead of an alias to `cry`.
 - `idle_alt`: Can be selected from the right-click menu, can be picked randomly as an idle variant, and can be picked randomly as a single-click reaction. This replaces the old `wake` label.
@@ -94,6 +99,18 @@ Implemented v0.2.3 improvements and bug fixes:
 - Drag-only animations are renamed to `run_right` and `run_left`; old `happy_run`, `run`, and `walk_drag` keys remain compatibility aliases.
 - Single-click and double-click reactions use distinct animation groups so their feedback does not overlap.
 - `idle_long` is removed from the menu and idle scheduler, but remains available through the old `idle_breathe` compatibility alias.
+
+## v0.3.0 Development Notes
+
+Implemented v0.3.0 runtime physics and menu improvements:
+
+- Package and Neutralino metadata are updated to `0.3.0`.
+- Drag release samples the last 120ms of pointer movement, so fast horizontal release adds short inertia while slow release remains a precise position adjustment.
+- Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and damped landing movement without interrupting persisted action state.
+- Pet window coordinates are clamped during dragging, release physics, menu restoration, and startup restore so the pet remains interactable at desktop edges.
+- Animation metadata supports optional `motionX` tracks, and `walk` uses a small horizontal frame offset to make the light jog less stiff.
+- The right-click menu chooses left or right docking based on available screen width and restores the pet anchor position after the menu closes.
+- Windows tray menu behavior is still under investigation: show/hide, always-on-top, action switching, and quit are implemented in code, but the tray icon is a known unresolved BUG in the packaged Windows build.
 
 ## v0.2.4 Discussion Queue
 
@@ -155,7 +172,10 @@ Neutralino executable icons use the project-relative `applicationIcon` path. The
 - 新增桌宠垂直提起与坠落效果，并与竖直调整桌宠位置的交互明确区分。
 - 修复轻快小跑动画动作生硬的问题；备选方案是为动画添加 x 轴移动效果，并完善移动帧。
 - 修复菜单默认出现在模型右边时，在模型靠近屏幕右边界会出现的位置错误。
-- 新增 Windows 菜单栏小图标，并支持通过右键小图标唤起菜单。
+
+### v0.3.0 已知 BUG
+
+- Windows 系统托盘 / 菜单栏小图标在当前打包版本中仍无法正常显示；已有资源路径、资源解包临时文件和菜单项简化方案均未解决，需要后续单独调查 Neutralino Windows 托盘图标加载机制或改用其他托盘实现方案。
 
 ### 长期计划
 

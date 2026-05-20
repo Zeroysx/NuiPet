@@ -8,13 +8,29 @@
   const quit = document.getElementById("quit");
   const native = window.Neutralino || null;
   const storageKey = "nuipet.settings";
+  const trayIconCandidates = [
+    { resource: "assets/icons/tray-icon.png", tray: "/resources/assets/icons/tray-icon.png" },
+    { resource: "/assets/icons/tray-icon.png", tray: "/resources/assets/icons/tray-icon.png" },
+    { resource: "web/assets/icons/tray-icon.png", tray: "/resources/web/assets/icons/tray-icon.png" },
+    { resource: "/web/assets/icons/tray-icon.png", tray: "/resources/web/assets/icons/tray-icon.png" }
+  ];
 
   const menuWidth = 194;
   const menuPadding = 4;
   const menuDockGap = 8;
+  const menuEdgePadding = 12;
   const dragStartDistance = 5;
   const dragFacingThreshold = 10;
   const dragFacingDominance = 1.15;
+  const dragVelocityWindowMs = 120;
+  const inertiaVelocityThreshold = 0.45;
+  const fallVelocityThreshold = 0.62;
+  const maxThrowVelocity = 2.4;
+  const horizontalFriction = 0.0046;
+  const gravity = 0.0052;
+  const bounceVelocityThreshold = 0.18;
+  const bounceDamping = 0.32;
+  const displayBoundsCacheMs = 5000;
   const fallbackFrame = {
     columns: 1,
     rows: 1,
@@ -59,8 +75,18 @@
   let facing = 1;
   let dragWindowStart = null;
   let dragFacingAnchorX = null;
+  let dragSamples = [];
   let dragDirection = "right";
   let menuOpen = false;
+  let menuDockSide = "right";
+  let menuAnchorPosition = null;
+  let physicsFrame = 0;
+  let physicsAnimating = false;
+  let actionBeforePhysics = null;
+  let displayBoundsCache = null;
+  let displayBoundsCacheAt = 0;
+  let trayReady = false;
+  let resolvedTrayIconPath = null;
   let lastInteractionAt = Date.now();
   let nextIdleAt = lastInteractionAt + 6500;
   let textIndexes = Object.create(null);
@@ -105,8 +131,19 @@
       fps: Number.isFinite(animation.fps) && animation.fps > 0 ? animation.fps : fallback.fps,
       loop: animation.loop,
       next: animation.next,
+      motionX: Array.isArray(animation.motionX) ? animation.motionX.filter(Number.isFinite) : [],
       motionY: Array.isArray(animation.motionY) ? animation.motionY.filter(Number.isFinite) : []
     };
+  }
+
+  function isMotionTrackSafe(animation, key) {
+    if (animation[key] === undefined) {
+      return true;
+    }
+
+    return Array.isArray(animation[key])
+      && animation[key].length === animation.frames.length
+      && animation[key].every(Number.isFinite);
   }
 
   function isAnimationSafe(action) {
@@ -124,10 +161,12 @@
       return false;
     }
 
-    if (animation.motionY !== undefined) {
-      return Array.isArray(animation.motionY)
-        && animation.motionY.length === animation.frames.length
-        && animation.motionY.every(Number.isFinite);
+    if (!isMotionTrackSafe(animation, "motionX")) {
+      return false;
+    }
+
+    if (!isMotionTrackSafe(animation, "motionY")) {
+      return false;
     }
 
     return true;
@@ -194,6 +233,7 @@
     scaleLabel.textContent = `${Math.round(settings.scale * 100)}%`;
     if (menuOpen) {
       dockMenu();
+      resizeWindowForState();
     }
     renderCurrentFrame();
   }
@@ -201,6 +241,7 @@
   function updatePin() {
     pinToggle.classList.toggle("is-active", settings.always_on_top);
     pinToggle.textContent = settings.always_on_top ? "置顶：开" : "置顶：关";
+    updateTray();
   }
 
   function updateGrid() {
@@ -231,9 +272,11 @@
     });
   }
 
-  function setActionOffsetY(animation, frameSlot) {
-    const offset = animation.motionY[frameSlot] || 0;
-    document.documentElement.style.setProperty("--action-offset-y", `${offset * settings.scale}px`);
+  function setActionOffsets(animation, frameSlot) {
+    const offsetX = animation.motionX[frameSlot] || 0;
+    const offsetY = animation.motionY[frameSlot] || 0;
+    document.documentElement.style.setProperty("--action-offset-x", `${offsetX * settings.scale}px`);
+    document.documentElement.style.setProperty("--action-offset-y", `${offsetY * settings.scale}px`);
   }
 
   function noteInteraction() {
@@ -295,6 +338,7 @@
     pointerStart = null;
     dragWindowStart = null;
     dragFacingAnchorX = null;
+    dragSamples = [];
     dragDirection = "right";
     pet.classList.remove("is-dragging");
     setFacing(1);
@@ -318,6 +362,11 @@
       width: Math.ceil(menu.offsetWidth || menuWidth),
       height: Math.ceil(menu.offsetHeight || 0)
     };
+  }
+
+  function getMenuExtensionWidth() {
+    const bounds = getMenuBounds();
+    return bounds.width ? bounds.width + menuDockGap + menuPadding : 0;
   }
 
   function getFramePixelSize() {
@@ -354,7 +403,7 @@
   }
 
   async function exitApp() {
-    hideMenu();
+    await hideMenu();
     if (!isNeutralino() || !native.app || !native.app.exit) {
       window.close();
       return;
@@ -372,16 +421,83 @@
     await tryNative(() => native.window.setSize(getWindowSize()));
 
     if (Number.isFinite(settings.x) && Number.isFinite(settings.y)) {
-      await tryNative(() => native.window.move(settings.x, settings.y));
+      const position = await clampWindowPosition({ x: settings.x, y: settings.y });
+      settings.x = position.x;
+      settings.y = position.y;
+      await tryNative(() => native.window.move(position.x, position.y));
     }
   }
 
   function resizeWindowForState() {
     if (!isNeutralino() || !native.window.setSize) {
-      return;
+      return Promise.resolve(null);
     }
 
-    tryNative(() => native.window.setSize(getWindowSize()));
+    return tryNative(() => native.window.setSize(getWindowSize()));
+  }
+
+  async function getPrimaryDisplayBounds() {
+    const now = Date.now();
+    if (displayBoundsCache && now - displayBoundsCacheAt < displayBoundsCacheMs) {
+      return displayBoundsCache;
+    }
+
+    let bounds = null;
+    if (isNeutralino() && native.computer && native.computer.getDisplays) {
+      const displays = await tryNative(() => native.computer.getDisplays());
+      const primary = Array.isArray(displays) && displays[0];
+      const resolution = primary && primary.resolution;
+      if (resolution && Number.isFinite(resolution.width) && Number.isFinite(resolution.height)) {
+        bounds = {
+          width: resolution.width,
+          height: resolution.height
+        };
+      }
+    }
+
+    if (!bounds && window.screen && window.screen.availWidth && window.screen.availHeight) {
+      const nativeScale = getNativeScale();
+      bounds = {
+        width: window.screen.availWidth * nativeScale,
+        height: window.screen.availHeight * nativeScale
+      };
+    }
+
+    if (bounds) {
+      displayBoundsCache = bounds;
+      displayBoundsCacheAt = now;
+    }
+
+    return bounds;
+  }
+
+  // Keep enough of the pet window on screen so edge throws never make it unreachable.
+  async function clampWindowPosition(position, size = getWindowSize()) {
+    const bounds = await getPrimaryDisplayBounds();
+    if (!bounds || !position) {
+      return position;
+    }
+
+    return {
+      x: Math.max(0, Math.min(Math.round(position.x), Math.max(0, bounds.width - size.width))),
+      y: Math.max(0, Math.min(Math.round(position.y), Math.max(0, bounds.height - size.height)))
+    };
+  }
+
+  async function chooseMenuDockSide(anchorPosition) {
+    if (!anchorPosition) {
+      return "right";
+    }
+
+    const displayBounds = await getPrimaryDisplayBounds();
+    if (!displayBounds) {
+      return "right";
+    }
+
+    const nativeScale = getNativeScale();
+    const frame = getFramePixelSize();
+    const rightEdge = anchorPosition.x + Math.ceil((frame.width + getMenuExtensionWidth()) * nativeScale);
+    return rightEdge + menuEdgePadding * nativeScale > displayBounds.width ? "left" : "right";
   }
 
   async function persist(applyWindowSettings) {
@@ -401,14 +517,21 @@
   }
 
   async function readPosition() {
+    if (menuOpen && menuAnchorPosition) {
+      settings.x = menuAnchorPosition.x;
+      settings.y = menuAnchorPosition.y;
+      return;
+    }
+
     if (!isNeutralino() || !native.window.getPosition) {
       return;
     }
 
     try {
       const position = await native.window.getPosition();
-      settings.x = position.x;
-      settings.y = position.y;
+      const clamped = await clampWindowPosition(position);
+      settings.x = clamped.x;
+      settings.y = clamped.y;
     } catch (_error) {
       // Browser preview and some window managers may not expose a position.
     }
@@ -425,6 +548,229 @@
     await persist(false);
   }
 
+  function cancelPhysics() {
+    if (physicsFrame) {
+      window.cancelAnimationFrame(physicsFrame);
+    }
+
+    physicsFrame = 0;
+    physicsAnimating = false;
+    pet.classList.remove("is-falling");
+    if (actionBeforePhysics) {
+      setAction(actionBeforePhysics, { persistAction: false });
+      actionBeforePhysics = null;
+    }
+  }
+
+  function clampVelocity(value) {
+    return Math.max(-maxThrowVelocity, Math.min(maxThrowVelocity, value));
+  }
+
+  function recordDragSample(event) {
+    const nativeScale = getNativeScale();
+    const sample = {
+      x: event.screenX * nativeScale,
+      y: event.screenY * nativeScale,
+      at: performance.now()
+    };
+
+    dragSamples.push(sample);
+    const cutoff = sample.at - dragVelocityWindowMs;
+    dragSamples = dragSamples.filter((item) => item.at >= cutoff);
+  }
+
+  function getReleaseVelocity() {
+    if (dragSamples.length < 2) {
+      return { x: 0, y: 0 };
+    }
+
+    const latest = dragSamples[dragSamples.length - 1];
+    const earliest = dragSamples.find((sample) => latest.at - sample.at <= dragVelocityWindowMs) || dragSamples[0];
+    const elapsed = Math.max(1, latest.at - earliest.at);
+
+    return {
+      x: (latest.x - earliest.x) / elapsed,
+      y: (latest.y - earliest.y) / elapsed
+    };
+  }
+
+  function shouldStartPhysics(velocity) {
+    const speedX = Math.abs(velocity.x);
+    const speedY = Math.abs(velocity.y);
+
+    return speedX >= inertiaVelocityThreshold || speedY >= fallVelocityThreshold;
+  }
+
+  // Animate a quick throw after release, but route every frame through screen bounds.
+  async function playReleasePhysics(velocity, landingY = null) {
+    if (!shouldStartPhysics(velocity) || !isNeutralino() || !native.window.getPosition || !native.window.move) {
+      return false;
+    }
+
+    const start = await tryNative(() => native.window.getPosition());
+    if (!start) {
+      return false;
+    }
+
+    const hasFall = Math.abs(velocity.y) >= fallVelocityThreshold;
+    const hasGlide = Math.abs(velocity.x) >= inertiaVelocityThreshold;
+    let x = start.x;
+    let y = start.y;
+    let vx = hasGlide ? clampVelocity(velocity.x) : 0;
+    let vy = hasFall ? clampVelocity(velocity.y) : 0;
+    let lastAt = performance.now();
+    let bounceCount = 0;
+    const floorY = hasFall && Number.isFinite(landingY)
+      ? Math.max(start.y, landingY)
+      : start.y;
+
+    physicsAnimating = true;
+    if (hasFall) {
+      actionBeforePhysics = activeAction;
+      if (hasAnimation("fall")) {
+        await setAction("fall", { persistAction: false });
+      }
+      pet.classList.remove("is-dropped");
+      pet.classList.add("is-falling");
+    }
+
+    return new Promise((resolve) => {
+      const step = async (now) => {
+        if (!physicsAnimating) {
+          pet.classList.remove("is-falling");
+          if (actionBeforePhysics) {
+            setAction(actionBeforePhysics, { persistAction: false });
+            actionBeforePhysics = null;
+          }
+          resolve(false);
+          return;
+        }
+
+        const dt = Math.min(32, Math.max(1, now - lastAt));
+        lastAt = now;
+
+        if (vx > 0) {
+          vx = Math.max(0, vx - horizontalFriction * dt);
+        } else if (vx < 0) {
+          vx = Math.min(0, vx + horizontalFriction * dt);
+        }
+
+        if (hasFall) {
+          vy += gravity * dt;
+        }
+
+        x += vx * dt;
+        y += vy * dt;
+
+        if (hasFall && y > floorY) {
+          y = floorY;
+          if (Math.abs(vy) > bounceVelocityThreshold && bounceCount < 2) {
+            vy = -vy * bounceDamping;
+            bounceCount += 1;
+          } else {
+            vy = 0;
+          }
+        }
+
+        const nextPosition = await clampWindowPosition({ x, y });
+        x = nextPosition.x;
+        y = nextPosition.y;
+        if (x === 0 || x === Math.max(0, (displayBoundsCache ? displayBoundsCache.width : 0) - getWindowSize().width)) {
+          vx = 0;
+        }
+        await tryNative(() => native.window.move(nextPosition.x, nextPosition.y));
+
+        const movingHorizontally = Math.abs(vx) > 0.03;
+        const movingVertically = hasFall && (Math.abs(vy) > 0.04 || y < floorY - 0.5);
+        if (movingHorizontally || movingVertically) {
+          physicsFrame = window.requestAnimationFrame(step);
+          return;
+        }
+
+        physicsFrame = 0;
+        physicsAnimating = false;
+        pet.classList.remove("is-falling");
+        if (hasFall) {
+          if (actionBeforePhysics) {
+            await setAction(actionBeforePhysics, { persistAction: false });
+            actionBeforePhysics = null;
+          }
+          playFeedback("is-dropped");
+        }
+        await savePositionSoon();
+        resolve(true);
+      };
+
+      physicsFrame = window.requestAnimationFrame(step);
+    });
+  }
+
+  function getTrayItems() {
+    const actionItems = getMenuActions().map((item) => ({
+      id: `action_${item.action}`,
+      text: item.label || item.action
+    }));
+
+    return [
+      { id: "show", text: "显示/隐藏" },
+      { id: "pin", text: settings.always_on_top ? "取消置顶" : "保持置顶" },
+      ...actionItems,
+      { id: "quit", text: "退出" }
+    ];
+  }
+
+  async function updateTray() {
+    if (!trayReady || !isNeutralino() || !native.os || !native.os.setTray) {
+      return;
+    }
+
+    const icon = await resolveTrayIconPath();
+    await tryNative(() => native.os.setTray({
+      icon,
+      menuItems: getTrayItems()
+    }));
+  }
+
+  async function resolveTrayIconPath() {
+    if (resolvedTrayIconPath) {
+      return resolvedTrayIconPath;
+    }
+
+    // Prefer a real filesystem path on Windows because native tray icon loading is stricter than WebView resource loading.
+    if (native.resources && native.resources.getStats && native.resources.extractFile && native.os && native.os.getPath) {
+      const tempPath = await tryNative(() => native.os.getPath("temp"));
+      const targetPath = tempPath
+        ? `${tempPath.replace(/[\\/]+$/, "")}\\nuipet-tray-icon.png`
+        : null;
+
+      if (targetPath) {
+        for (const candidate of trayIconCandidates) {
+          const stats = await tryNative(() => native.resources.getStats(candidate.resource));
+          if (stats && stats.isFile) {
+            const extracted = await tryNative(() => native.resources.extractFile(candidate.resource, targetPath));
+            if (extracted !== null) {
+              resolvedTrayIconPath = targetPath;
+              return resolvedTrayIconPath;
+            }
+          }
+        }
+      }
+    }
+
+    if (native.resources && native.resources.getStats) {
+      for (const candidate of trayIconCandidates) {
+        const stats = await tryNative(() => native.resources.getStats(candidate.resource));
+        if (stats && stats.isFile) {
+          resolvedTrayIconPath = candidate.tray;
+          return resolvedTrayIconPath;
+        }
+      }
+    }
+
+    resolvedTrayIconPath = trayIconCandidates[0].tray;
+    return resolvedTrayIconPath;
+  }
+
   async function setAction(action, options = {}) {
     const resolvedAction = resolveAction(action);
     if (!hasAnimation(resolvedAction)) {
@@ -437,6 +783,7 @@
       actionAfterTransient = null;
       settings.action = resolvedAction;
       persist(false);
+      updateTray();
     }
 
     frameIndex = 0;
@@ -485,7 +832,7 @@
     const animation = getAnimation(resolvedAction);
     if (animation.loop !== false && resolvedFallback && resolvedFallback !== resolvedAction) {
       window.setTimeout(() => {
-        if (!dragging && activeAction === resolvedAction) {
+        if (!dragging && !physicsAnimating && activeAction === resolvedAction) {
           actionAfterTransient = null;
           setAction(resolvedFallback, { persistAction: false });
         }
@@ -513,7 +860,7 @@
   }
 
   async function maybePlayIdleVariant() {
-    if (dragging || menuOpen || pointerStart || activeAction !== settings.action || settings.action !== "idle") {
+    if (dragging || physicsAnimating || menuOpen || pointerStart || activeAction !== settings.action || settings.action !== "idle") {
       return;
     }
 
@@ -537,34 +884,75 @@
 
   function dockMenu() {
     const frame = getFramePixelSize();
+    const bounds = getMenuBounds();
     const menuHeight = menu.offsetHeight || 0;
     const availableHeight = Math.max(frame.height, menuHeight);
     const top = Math.max(0, Math.round((availableHeight - menuHeight) / 2));
+    const petOffset = menuOpen && menuDockSide === "left"
+      ? bounds.width + menuDockGap
+      : 0;
 
-    menu.style.left = `${Math.ceil(frame.width + menuDockGap)}px`;
+    document.documentElement.style.setProperty("--pet-offset-x", `${petOffset}px`);
+    menu.style.left = menuDockSide === "left"
+      ? "0px"
+      : `${Math.ceil(frame.width + menuDockGap)}px`;
     menu.style.top = `${top}px`;
   }
 
-  function showMenu() {
+  async function showMenu() {
+    if (physicsAnimating) {
+      return;
+    }
+
     noteInteraction();
+    menuAnchorPosition = isNeutralino() && native.window.getPosition
+      ? await tryNative(() => native.window.getPosition())
+      : null;
+    if (menuAnchorPosition) {
+      menuAnchorPosition = await clampWindowPosition(menuAnchorPosition, {
+        width: Math.ceil(getFramePixelSize().width * getNativeScale()),
+        height: Math.ceil(getFramePixelSize().height * getNativeScale())
+      });
+      await tryNative(() => native.window.move(menuAnchorPosition.x, menuAnchorPosition.y));
+    }
     menu.hidden = false;
     menuOpen = true;
+    menuDockSide = "right";
     dockMenu();
-    resizeWindowForState();
+    menuDockSide = await chooseMenuDockSide(menuAnchorPosition);
+    dockMenu();
+    await resizeWindowForState();
+    if (menuDockSide === "left" && menuAnchorPosition && native.window.move) {
+      const nativeScale = getNativeScale();
+      const leftOffset = getMenuBounds().width + menuDockGap;
+      await tryNative(() => native.window.move(
+        Math.round(menuAnchorPosition.x - leftOffset * nativeScale),
+        menuAnchorPosition.y
+      ));
+    }
     window.requestAnimationFrame(() => {
       dockMenu();
       resizeWindowForState();
     });
   }
 
-  function hideMenu() {
+  async function hideMenu() {
     if (!menuOpen) {
       return;
     }
 
+    const anchorPosition = menuAnchorPosition;
+    const restorePosition = menuDockSide === "left" && anchorPosition && native.window.move;
     menu.hidden = true;
     menuOpen = false;
-    resizeWindowForState();
+    menuDockSide = "right";
+    menuAnchorPosition = null;
+    document.documentElement.style.setProperty("--pet-offset-x", "0px");
+    await resizeWindowForState();
+    if (restorePosition) {
+      const clampedPosition = await clampWindowPosition(anchorPosition);
+      await tryNative(() => native.window.move(clampedPosition.x, clampedPosition.y));
+    }
   }
 
   function renderFrame(timestamp) {
@@ -584,7 +972,7 @@
       const column = animation.frames[frameSlot] || 0;
       const row = animation.row;
       pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
-      setActionOffsetY(animation, frameSlot);
+      setActionOffsets(animation, frameSlot);
       frameIndex += 1;
       lastFrameAt = timestamp;
     }
@@ -602,7 +990,7 @@
     const column = animation.frames[frameSlot] || 0;
     const row = animation.row || 0;
     pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
-    setActionOffsetY(animation, frameSlot);
+    setActionOffsets(animation, frameSlot);
   }
 
   function startAnimation() {
@@ -639,24 +1027,47 @@
       return;
     }
 
+    trayReady = true;
+    const icon = await resolveTrayIconPath();
     await tryNative(() => native.os.setTray({
-      icon: "/assets/icons/tray-icon.png",
+      icon,
       menuItems: [
         { id: "show", text: "显示/隐藏" },
         { id: "quit", text: "退出" }
       ]
     }));
+    await updateTray();
 
     native.events.on("trayMenuItemClicked", async (event) => {
-      if (event.detail.id === "quit") {
+      const id = event.detail.id;
+      if (id === "quit") {
         await exitApp();
         return;
       }
 
-      if (event.detail.id === "show") {
+      if (id === "show") {
         noteInteraction();
         await tryNative(() => native.window.show());
         await tryNative(() => native.window.focus());
+        return;
+      }
+
+      if (id === "pin") {
+        noteInteraction();
+        settings.always_on_top = !settings.always_on_top;
+        updatePin();
+        persist(true);
+        return;
+      }
+
+      if (id && id.startsWith("action_")) {
+        const changed = await setAction(id.slice("action_".length));
+        if (changed) {
+          noteInteraction();
+          await tryNative(() => native.window.show());
+          await tryNative(() => native.window.focus());
+          showBubble(nextBubbleText("menu"), 1200);
+        }
       }
     });
   }
@@ -700,9 +1111,9 @@
     }
   }
 
-  pet.addEventListener("contextmenu", (event) => {
+  pet.addEventListener("contextmenu", async (event) => {
     event.preventDefault();
-    showMenu();
+    await showMenu();
   });
 
   pet.addEventListener("pointerdown", async (event) => {
@@ -711,6 +1122,7 @@
     }
 
     noteInteraction();
+    cancelPhysics();
     pet.setPointerCapture(event.pointerId);
     pointerStart = {
       x: event.clientX,
@@ -719,9 +1131,11 @@
       screenY: event.screenY,
       at: Date.now()
     };
+    dragSamples = [];
+    recordDragSample(event);
     dragFacingAnchorX = event.screenX;
     dragWindowStart = isNeutralino() ? await tryNative(() => native.window.getPosition()) : null;
-    hideMenu();
+    await hideMenu();
   });
 
   window.addEventListener("pointermove", async (event) => {
@@ -736,6 +1150,7 @@
 
     const dx = event.screenX - pointerStart.screenX;
     const dy = event.screenY - pointerStart.screenY;
+    recordDragSample(event);
     updateDragFacing(event);
 
     if (!dragging) {
@@ -757,10 +1172,11 @@
     }
 
     const nativeScale = getNativeScale();
-    tryNative(() => native.window.move(
-      Math.round(dragWindowStart.x + dx * nativeScale),
-      Math.round(dragWindowStart.y + dy * nativeScale)
-    ));
+    const nextPosition = await clampWindowPosition({
+      x: dragWindowStart.x + dx * nativeScale,
+      y: dragWindowStart.y + dy * nativeScale
+    });
+    tryNative(() => native.window.move(nextPosition.x, nextPosition.y));
   });
 
   window.addEventListener("pointerup", async () => {
@@ -771,12 +1187,17 @@
     const wasDragging = dragging;
 
     if (wasDragging) {
+      const velocity = getReleaseVelocity();
+      const landingY = dragWindowStart && Number.isFinite(dragWindowStart.y) ? dragWindowStart.y : null;
       resetDragState();
       noteInteraction();
       playFeedback("is-dropped");
       showBubble(nextBubbleText("dragEnd"), 1200);
       await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
-      await savePositionSoon();
+      const didAnimate = await playReleasePhysics(velocity, landingY);
+      if (!didAnimate) {
+        await savePositionSoon();
+      }
       return;
     }
 
@@ -803,10 +1224,15 @@
       return;
     }
 
+    const velocity = getReleaseVelocity();
+    const landingY = dragWindowStart && Number.isFinite(dragWindowStart.y) ? dragWindowStart.y : null;
     resetDragState();
     noteInteraction();
     await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
-    await savePositionSoon();
+    const didAnimate = await playReleasePhysics(velocity, landingY);
+    if (!didAnimate) {
+      await savePositionSoon();
+    }
   });
 
   window.addEventListener("blur", hideMenu);
@@ -823,7 +1249,7 @@
       if (changed) {
         showBubble(nextBubbleText("menu"), 1200);
       }
-      hideMenu();
+      await hideMenu();
     }
 
     if (button.dataset.scale) {
