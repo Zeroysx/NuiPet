@@ -139,3 +139,4 @@
 - Marked the packaged Windows tray icon display failure as an unresolved v0.3.0 BUG in the development plan.
 - Added a physics-only `fall` action that plays descending jump poses during fast vertical release, then restores the previous action on landing.
 - Replaced the temporary descending-jump `fall` placeholder with a subagent-generated independent falling spritesheet row on atlas row 13.
+- Split the `fall` runtime playback into airborne looping frames and landing-only support frames so hand-on-ground poses appear only after the pet reaches the bottom.

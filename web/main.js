@@ -30,6 +30,8 @@
   const gravity = 0.0052;
   const bounceVelocityThreshold = 0.18;
   const bounceDamping = 0.32;
+  const fallLandingFrameStart = 5;
+  const fallLandingHoldMs = 90;
   const displayBoundsCacheMs = 5000;
   const fallbackFrame = {
     columns: 1,
@@ -83,6 +85,7 @@
   let physicsFrame = 0;
   let physicsAnimating = false;
   let actionBeforePhysics = null;
+  let fallPlaybackPhase = null;
   let displayBoundsCache = null;
   let displayBoundsCacheAt = 0;
   let trayReady = false;
@@ -277,6 +280,45 @@
     const offsetY = animation.motionY[frameSlot] || 0;
     document.documentElement.style.setProperty("--action-offset-x", `${offsetX * settings.scale}px`);
     document.documentElement.style.setProperty("--action-offset-y", `${offsetY * settings.scale}px`);
+  }
+
+  function getFallLandingFrameStart(animation) {
+    return Math.max(0, Math.min(fallLandingFrameStart, animation.frames.length - 1));
+  }
+
+  function getFrameSlot(animation) {
+    if (activeAction === "fall" && fallPlaybackPhase === "air") {
+      const airFrameCount = Math.max(1, Math.min(getFallLandingFrameStart(animation), animation.frames.length));
+      return frameIndex % airFrameCount;
+    }
+
+    if (activeAction === "fall" && fallPlaybackPhase === "land") {
+      const landingStart = getFallLandingFrameStart(animation);
+      return Math.min(landingStart + frameIndex, animation.frames.length - 1);
+    }
+
+    return animation.loop === false
+      ? Math.min(frameIndex, animation.frames.length - 1)
+      : frameIndex % animation.frames.length;
+  }
+
+  // The generated fall row contains airborne frames followed by impact frames.
+  // Keep hand-on-ground frames for the moment the native window has reached the landing y.
+  async function playFallLandingAnimation() {
+    if (activeAction !== "fall" || !hasAnimation("fall")) {
+      fallPlaybackPhase = null;
+      return;
+    }
+
+    const animation = getAnimation("fall");
+    const landingStart = getFallLandingFrameStart(animation);
+    const landingFrameCount = Math.max(1, animation.frames.length - landingStart);
+    fallPlaybackPhase = "land";
+    frameIndex = 0;
+    lastFrameAt = 0;
+    renderCurrentFrame();
+    await wait((landingFrameCount / Math.max(1, animation.fps)) * 1000 + fallLandingHoldMs);
+    fallPlaybackPhase = null;
   }
 
   function noteInteraction() {
@@ -555,11 +597,16 @@
 
     physicsFrame = 0;
     physicsAnimating = false;
+    fallPlaybackPhase = null;
     pet.classList.remove("is-falling");
     if (actionBeforePhysics) {
       setAction(actionBeforePhysics, { persistAction: false });
       actionBeforePhysics = null;
     }
+  }
+
+  function wait(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
   function clampVelocity(value) {
@@ -628,6 +675,7 @@
     if (hasFall) {
       actionBeforePhysics = activeAction;
       if (hasAnimation("fall")) {
+        fallPlaybackPhase = "air";
         await setAction("fall", { persistAction: false });
       }
       pet.classList.remove("is-dropped");
@@ -638,6 +686,7 @@
       const step = async (now) => {
         if (!physicsAnimating) {
           pet.classList.remove("is-falling");
+          fallPlaybackPhase = null;
           if (actionBeforePhysics) {
             setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
@@ -688,14 +737,17 @@
         }
 
         physicsFrame = 0;
-        physicsAnimating = false;
         pet.classList.remove("is-falling");
         if (hasFall) {
+          await playFallLandingAnimation();
+          physicsAnimating = false;
           if (actionBeforePhysics) {
             await setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
           }
           playFeedback("is-dropped");
+        } else {
+          physicsAnimating = false;
         }
         await savePositionSoon();
         resolve(true);
@@ -779,6 +831,9 @@
 
     const persistAction = options.persistAction !== false;
     activeAction = resolvedAction;
+    if (resolvedAction !== "fall") {
+      fallPlaybackPhase = null;
+    }
     if (persistAction) {
       actionAfterTransient = null;
       settings.action = resolvedAction;
@@ -960,7 +1015,7 @@
     const interval = 1000 / Math.max(1, animation.fps);
 
     if (!lastFrameAt || timestamp - lastFrameAt >= interval) {
-      if (animation.loop === false && frameIndex >= animation.frames.length) {
+      if (animation.loop === false && !fallPlaybackPhase && frameIndex >= animation.frames.length) {
         const nextAction = actionAfterTransient || animation.next || settings.action || getDefaultAction();
         actionAfterTransient = null;
         setAction(nextAction, { persistAction: false });
@@ -968,7 +1023,7 @@
         return;
       }
 
-      const frameSlot = animation.loop === false ? frameIndex : frameIndex % animation.frames.length;
+      const frameSlot = getFrameSlot(animation);
       const column = animation.frames[frameSlot] || 0;
       const row = animation.row;
       pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
@@ -986,7 +1041,7 @@
     }
 
     const animation = getAnimation(activeAction);
-    const frameSlot = Math.min(frameIndex, animation.frames.length - 1);
+    const frameSlot = getFrameSlot(animation);
     const column = animation.frames[frameSlot] || 0;
     const row = animation.row || 0;
     pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
