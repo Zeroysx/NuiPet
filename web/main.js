@@ -30,7 +30,6 @@
   const gravity = 0.0052;
   const bounceVelocityThreshold = 0.18;
   const bounceDamping = 0.32;
-  const fallLandingFrameStart = 5;
   const fallLandingHoldMs = 90;
   const displayBoundsCacheMs = 5000;
   const fallbackFrame = {
@@ -282,19 +281,13 @@
     document.documentElement.style.setProperty("--action-offset-y", `${offsetY * settings.scale}px`);
   }
 
-  function getFallLandingFrameStart(animation) {
-    return Math.max(0, Math.min(fallLandingFrameStart, animation.frames.length - 1));
-  }
-
   function getFrameSlot(animation) {
     if (activeAction === "fall" && fallPlaybackPhase === "air") {
-      const airFrameCount = Math.max(1, Math.min(getFallLandingFrameStart(animation), animation.frames.length));
-      return frameIndex % airFrameCount;
+      return frameIndex % animation.frames.length;
     }
 
-    if (activeAction === "fall" && fallPlaybackPhase === "land") {
-      const landingStart = getFallLandingFrameStart(animation);
-      return Math.min(landingStart + frameIndex, animation.frames.length - 1);
+    if (fallPlaybackPhase === "land") {
+      return Math.min(frameIndex, animation.frames.length - 1);
     }
 
     return animation.loop === false
@@ -302,22 +295,22 @@
       : frameIndex % animation.frames.length;
   }
 
-  // The generated fall row contains airborne frames followed by impact frames.
+  // The generated fall sequence is split across airborne and landing rows.
   // Keep hand-on-ground frames for the moment the native window has reached the landing y.
   async function playFallLandingAnimation() {
-    if (activeAction !== "fall" || !hasAnimation("fall")) {
+    const landingAction = hasAnimation("fall_land") ? "fall_land" : "fall";
+    if (activeAction !== "fall" || !hasAnimation(landingAction)) {
       fallPlaybackPhase = null;
       return;
     }
 
-    const animation = getAnimation("fall");
-    const landingStart = getFallLandingFrameStart(animation);
-    const landingFrameCount = Math.max(1, animation.frames.length - landingStart);
     fallPlaybackPhase = "land";
+    await setAction(landingAction, { persistAction: false });
+    const animation = getAnimation(landingAction);
     frameIndex = 0;
     lastFrameAt = 0;
     renderCurrentFrame();
-    await wait((landingFrameCount / Math.max(1, animation.fps)) * 1000 + fallLandingHoldMs);
+    await wait((animation.frames.length / Math.max(1, animation.fps)) * 1000 + fallLandingHoldMs);
     fallPlaybackPhase = null;
   }
 
@@ -831,7 +824,7 @@
 
     const persistAction = options.persistAction !== false;
     activeAction = resolvedAction;
-    if (resolvedAction !== "fall") {
+    if (resolvedAction !== "fall" && resolvedAction !== "fall_land") {
       fallPlaybackPhase = null;
     }
     if (persistAction) {

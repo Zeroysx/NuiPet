@@ -5,7 +5,7 @@
   "spritesheetPath": "spritesheet.webp",
   "grid": {
     "columns": 8,
-    "rows": 14,
+    "rows": 15,
     "frameWidth": 192,
     "frameHeight": 208
   },
@@ -15,7 +15,8 @@
     "run_left": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
     "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
     "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8, "motionY": [0, -18, -34, -18, 0] },
-    "fall": { "row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
+    "fall": { "row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 8 },
+    "fall_land": { "row": 14, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 8, "loop": false },
     "cry": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
     "idle_alt": { "row": 6, "frames": [0, 1, 2, 3, 4, 5], "fps": 4, "loop": false, "next": "idle" },
     "walk": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 7, "motionX": [0, -2, -3, -2, 0, 1] },
@@ -61,7 +62,8 @@
     "run_left": "Drag-only left-facing running variant; renamed from run.",
     "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
     "sleep": "Dedicated v0.2.3 prone sleep row with a small attached Z cue and a longer closed-eye hold.",
-    "fall": "Physics-only generated falling row used during fast vertical release; frames 0-4 are airborne and frames 5-7 are landing-only.",
+    "fall": "Physics-only generated airborne falling row used during fast vertical release.",
+    "fall_land": "Physics-only generated landing row played only after the pet reaches the bottom.",
     "idle_alt": "Former wake row; visually closer to a second idle action.",
     "walk": "Light jog row with small per-frame motionX offsets to reduce stiff in-place movement.",
     "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.",

@@ -45,7 +45,8 @@ Current action keys and trigger conditions:
 - `run_left`: Drag-only left-facing running variant. It is not shown in the right-click menu. The old `run` key remains a compatibility alias.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
 - `jump`: Can be selected from the right-click menu and can be picked randomly as a double-click reaction. It defines `motionY` offsets for the visible jump arc.
-- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated falling row on atlas row 13, loops only the airborne frames while falling, and shows the hand-on-ground landing frames only after the pet reaches the bottom.
+- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated eight-frame airborne row on atlas row 13 and loops while the pet is still falling.
+- `fall_land`: Physics-only landing follow-up on atlas row 14. It adds eight landing and recovery frames, with hand-on-ground poses only after the pet reaches the bottom.
 - `cry`: Can be selected from the right-click menu.
 - `sleep`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler. This is a dedicated v0.2.3 sleep action instead of an alias to `cry`.
 - `idle_alt`: Can be selected from the right-click menu, can be picked randomly as an idle variant, and can be picked randomly as a single-click reaction. This replaces the old `wake` label.
@@ -106,7 +107,7 @@ Implemented v0.3.0 runtime physics and menu improvements:
 
 - Package and Neutralino metadata are updated to `0.3.0`.
 - Drag release samples the last 120ms of pointer movement, so fast horizontal release adds short inertia while slow release remains a precise position adjustment.
-- Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and damped landing movement without interrupting persisted action state; the hand-on-ground frames are held until the landing moment.
+- Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and damped landing movement without interrupting persisted action state; the `fall_land` row adds slower landing and recovery frames after the pet reaches the bottom.
 - Pet window coordinates are clamped during dragging, release physics, menu restoration, and startup restore so the pet remains interactable at desktop edges.
 - Animation metadata supports optional `motionX` tracks, and `walk` uses a small horizontal frame offset to make the light jog less stiff.
 - The right-click menu chooses left or right docking based on available screen width and restores the pet anchor position after the menu closes.
