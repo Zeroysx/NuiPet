@@ -25,6 +25,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - Drag-facing direction uses direction-specific run rows plus a small accumulated horizontal threshold, so pointer jitter at drag start does not flip the pet the wrong way.
 - Dragging is implemented with explicit window movement instead of native drag handoff, which keeps animation direction and always-on-top state consistent.
 - Fast drag release can trigger short horizontal inertia or vertical lift-and-fall physics while slow release remains a normal position adjustment.
+- Horizontal inertia release keeps a temporary direction-aware running action and adds speed-decaying lean, stretch, and offset feedback while the window glides.
 - Dragging, throw physics, and saved window restoration clamp the pet inside the primary display so it cannot disappear beyond the desktop edge.
 - The window expands while the right-click menu is open so the menu docks beside the pet instead of covering it.
 - The right-click menu can dock to the left when the pet is near the right screen edge, then restore the pet anchor position after closing.
@@ -107,6 +108,7 @@ Implemented v0.3.0 runtime physics and menu improvements:
 
 - Package and Neutralino metadata are updated to `0.3.0`.
 - Drag release samples the last 120ms of pointer movement, so fast horizontal release adds short inertia while slow release remains a precise position adjustment.
+- Horizontal inertia release now uses the direction-specific run action plus speed-based lean, stretch, and frame offset so left/right glides read as an active movement instead of a sliding window only.
 - Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and damped landing movement without interrupting persisted action state; the `fall_land` row adds slower landing and recovery frames after the pet reaches the bottom.
 - Pet window coordinates are clamped during dragging, release physics, menu restoration, and startup restore so the pet remains interactable at desktop edges.
 - Animation metadata supports optional `motionX` tracks, and `walk` uses a small horizontal frame offset to make the light jog less stiff.

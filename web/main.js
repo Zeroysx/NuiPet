@@ -31,6 +31,9 @@
   const bounceVelocityThreshold = 0.18;
   const bounceDamping = 0.32;
   const fallLandingHoldMs = 90;
+  const inertiaVisualMaxOffset = 7;
+  const inertiaVisualMaxTilt = 5;
+  const inertiaVisualMaxStretch = 0.06;
   const displayBoundsCacheMs = 5000;
   const fallbackFrame = {
     columns: 1,
@@ -279,6 +282,28 @@
     const offsetY = animation.motionY[frameSlot] || 0;
     document.documentElement.style.setProperty("--action-offset-x", `${offsetX * settings.scale}px`);
     document.documentElement.style.setProperty("--action-offset-y", `${offsetY * settings.scale}px`);
+  }
+
+  function setInertiaVisuals(vx = 0) {
+    const normalized = Math.min(1, Math.abs(vx) / maxThrowVelocity);
+    const direction = vx < 0 ? -1 : 1;
+    const offset = normalized * inertiaVisualMaxOffset * direction * settings.scale;
+    const tilt = normalized * inertiaVisualMaxTilt * direction;
+    const stretch = 1 + normalized * inertiaVisualMaxStretch;
+    const shadow = normalized * -4 * direction;
+
+    document.documentElement.style.setProperty("--inertia-offset-x", `${offset.toFixed(2)}px`);
+    document.documentElement.style.setProperty("--inertia-tilt", `${tilt.toFixed(2)}deg`);
+    document.documentElement.style.setProperty("--inertia-stretch", stretch.toFixed(3));
+    document.documentElement.style.setProperty("--inertia-shadow-x", `${shadow.toFixed(2)}px`);
+  }
+
+  function clearInertiaVisuals() {
+    pet.classList.remove("is-gliding");
+    document.documentElement.style.setProperty("--inertia-offset-x", "0px");
+    document.documentElement.style.setProperty("--inertia-tilt", "0deg");
+    document.documentElement.style.setProperty("--inertia-stretch", "1");
+    document.documentElement.style.setProperty("--inertia-shadow-x", "0px");
   }
 
   function getFrameSlot(animation) {
@@ -591,6 +616,7 @@
     physicsFrame = 0;
     physicsAnimating = false;
     fallPlaybackPhase = null;
+    clearInertiaVisuals();
     pet.classList.remove("is-falling");
     if (actionBeforePhysics) {
       setAction(actionBeforePhysics, { persistAction: false });
@@ -665,8 +691,20 @@
       : start.y;
 
     physicsAnimating = true;
-    if (hasFall) {
+    if (hasFall || hasGlide) {
       actionBeforePhysics = activeAction;
+    }
+
+    if (hasGlide) {
+      setDragDirection(vx < 0 ? "left" : "right");
+      setInertiaVisuals(vx);
+      pet.classList.add("is-gliding");
+      if (!hasFall) {
+        await setAction(getDragAction(vx < 0 ? "left" : "right"), { persistAction: false });
+      }
+    }
+
+    if (hasFall) {
       if (hasAnimation("fall")) {
         fallPlaybackPhase = "air";
         await setAction("fall", { persistAction: false });
@@ -680,6 +718,7 @@
         if (!physicsAnimating) {
           pet.classList.remove("is-falling");
           fallPlaybackPhase = null;
+          clearInertiaVisuals();
           if (actionBeforePhysics) {
             setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
@@ -695,6 +734,9 @@
           vx = Math.max(0, vx - horizontalFriction * dt);
         } else if (vx < 0) {
           vx = Math.min(0, vx + horizontalFriction * dt);
+        }
+        if (hasGlide) {
+          setInertiaVisuals(vx);
         }
 
         if (hasFall) {
@@ -719,6 +761,7 @@
         y = nextPosition.y;
         if (x === 0 || x === Math.max(0, (displayBoundsCache ? displayBoundsCache.width : 0) - getWindowSize().width)) {
           vx = 0;
+          clearInertiaVisuals();
         }
         await tryNative(() => native.window.move(nextPosition.x, nextPosition.y));
 
@@ -731,6 +774,7 @@
 
         physicsFrame = 0;
         pet.classList.remove("is-falling");
+        clearInertiaVisuals();
         if (hasFall) {
           await playFallLandingAnimation();
           physicsAnimating = false;
@@ -741,6 +785,10 @@
           playFeedback("is-dropped");
         } else {
           physicsAnimating = false;
+          if (actionBeforePhysics) {
+            await setAction(actionBeforePhysics, { persistAction: false });
+            actionBeforePhysics = null;
+          }
         }
         await savePositionSoon();
         resolve(true);

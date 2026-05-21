@@ -6,6 +6,10 @@
   --pet-offset-x: 0px;
   --action-offset-x: 0px;
   --action-offset-y: 0px;
+  --inertia-offset-x: 0px;
+  --inertia-tilt: 0deg;
+  --inertia-stretch: 1;
+  --inertia-shadow-x: 0px;
   --atlas-width: 1536px;
   --atlas-height: 1872px;
   --menu-bg: rgba(22, 24, 28, 0.95);
@@ -48,11 +52,12 @@ button {
   background-repeat: no-repeat;
   background-size: var(--atlas-width) var(--atlas-height);
   image-rendering: pixelated;
-  translate: calc(var(--pet-offset-x) + var(--action-offset-x)) var(--action-offset-y);
-  transform: scaleX(var(--facing)) scale(var(--scale));
+  translate: calc(var(--pet-offset-x) + var(--action-offset-x) + var(--inertia-offset-x)) var(--action-offset-y);
+  transform: scaleX(var(--facing)) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   transform-origin: center center;
   cursor: grab;
   outline: none;
+  will-change: transform, translate;
 }
 
 .pet:active {
@@ -74,6 +79,10 @@ button {
 
 .pet.is-dropped {
   animation: pet-drop 220ms ease-out;
+}
+
+.pet.is-gliding {
+  filter: saturate(1.08) drop-shadow(var(--inertia-shadow-x) 0 0 rgba(0, 0, 0, 0.08));
 }
 
 .pet.is-falling {
@@ -196,49 +205,49 @@ button {
 
 @keyframes pet-pop {
   0% {
-    transform: scaleX(var(--facing)) scale(var(--scale));
+    transform: scaleX(var(--facing)) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
   45% {
-    transform: scaleX(var(--facing)) scale(calc(var(--scale) * 1.06));
+    transform: scaleX(var(--facing)) rotate(var(--inertia-tilt)) scale(calc(var(--scale) * 1.06)) scaleX(var(--inertia-stretch));
   }
   100% {
-    transform: scaleX(var(--facing)) scale(var(--scale));
+    transform: scaleX(var(--facing)) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
 }
 
 @keyframes pet-hop {
   0% {
-    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(0) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
   42% {
-    transform: scaleX(var(--facing)) translateY(-8px) scale(calc(var(--scale) * 1.08));
+    transform: scaleX(var(--facing)) translateY(-8px) rotate(var(--inertia-tilt)) scale(calc(var(--scale) * 1.08)) scaleX(var(--inertia-stretch));
   }
   100% {
-    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(0) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
 }
 
 @keyframes pet-drop {
   0% {
-    transform: scaleX(var(--facing)) translateY(-2px) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(-2px) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
   45% {
-    transform: scaleX(var(--facing)) translateY(2px) scale(calc(var(--scale) * 0.96));
+    transform: scaleX(var(--facing)) translateY(2px) rotate(var(--inertia-tilt)) scale(calc(var(--scale) * 0.96)) scaleX(var(--inertia-stretch));
   }
   100% {
-    transform: scaleX(var(--facing)) translateY(0) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(0) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
 }
 
 @keyframes pet-fall {
   0% {
-    transform: scaleX(var(--facing)) translateY(-4px) rotate(-1deg) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(-4px) rotate(calc(var(--inertia-tilt) - 1deg)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
   45% {
-    transform: scaleX(var(--facing)) translateY(4px) rotate(1deg) scale(calc(var(--scale) * 0.98));
+    transform: scaleX(var(--facing)) translateY(4px) rotate(calc(var(--inertia-tilt) + 1deg)) scale(calc(var(--scale) * 0.98)) scaleX(var(--inertia-stretch));
   }
   100% {
-    transform: scaleX(var(--facing)) translateY(-2px) rotate(0deg) scale(var(--scale));
+    transform: scaleX(var(--facing)) translateY(-2px) rotate(var(--inertia-tilt)) scale(var(--scale)) scaleX(var(--inertia-stretch));
   }
 }
 
