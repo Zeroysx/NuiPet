@@ -142,3 +142,4 @@
 - Split the `fall` runtime playback into airborne looping frames and landing-only support frames so hand-on-ground poses appear only after the pet reaches the bottom.
 - Expanded the generated fall sequence to 16 frames across airborne `fall` and landing `fall_land` rows so vertical throw recovery plays more smoothly.
 - Added direction-aware horizontal inertia feedback with temporary run actions plus speed-decaying lean, stretch, offset, and light trailing shadow during left/right glide release.
+- Removed vertical landing bounce and replaced the `fall_land` row with a tumble-and-get-up recovery sequence.

@@ -28,8 +28,6 @@
   const maxThrowVelocity = 2.4;
   const horizontalFriction = 0.0046;
   const gravity = 0.0052;
-  const bounceVelocityThreshold = 0.18;
-  const bounceDamping = 0.32;
   const fallLandingHoldMs = 90;
   const inertiaVisualMaxOffset = 7;
   const inertiaVisualMaxTilt = 5;
@@ -685,7 +683,6 @@
     let vx = hasGlide ? clampVelocity(velocity.x) : 0;
     let vy = hasFall ? clampVelocity(velocity.y) : 0;
     let lastAt = performance.now();
-    let bounceCount = 0;
     const floorY = hasFall && Number.isFinite(landingY)
       ? Math.max(start.y, landingY)
       : start.y;
@@ -748,12 +745,7 @@
 
         if (hasFall && y > floorY) {
           y = floorY;
-          if (Math.abs(vy) > bounceVelocityThreshold && bounceCount < 2) {
-            vy = -vy * bounceDamping;
-            bounceCount += 1;
-          } else {
-            vy = 0;
-          }
+          vy = 0;
         }
 
         const nextPosition = await clampWindowPosition({ x, y });
@@ -782,7 +774,6 @@
             await setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
           }
-          playFeedback("is-dropped");
         } else {
           physicsAnimating = false;
           if (actionBeforePhysics) {
@@ -1287,11 +1278,11 @@
       const landingY = dragWindowStart && Number.isFinite(dragWindowStart.y) ? dragWindowStart.y : null;
       resetDragState();
       noteInteraction();
-      playFeedback("is-dropped");
       showBubble(nextBubbleText("dragEnd"), 1200);
       await tryNative(() => native.window.setAlwaysOnTop(settings.always_on_top));
       const didAnimate = await playReleasePhysics(velocity, landingY);
       if (!didAnimate) {
+        playFeedback("is-dropped");
         await savePositionSoon();
       }
       return;
