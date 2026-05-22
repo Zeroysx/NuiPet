@@ -46,8 +46,9 @@ Current action keys and trigger conditions:
 - `run_left`: Drag-only left-facing running variant. It is not shown in the right-click menu. The old `run` key remains a compatibility alias.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
 - `jump`: Can be selected from the right-click menu and can be picked randomly as a double-click reaction. It defines `motionY` offsets for the visible jump arc.
-- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated eight-frame airborne row on atlas row 13 and loops while the pet is still falling.
-- `fall_land`: Physics-only landing follow-up on atlas row 14. It adds eight tumble-and-get-up frames, with prone/support poses only after the pet reaches the bottom.
+- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated eight-frame airborne row on atlas row 13 with stronger weightless imbalance and loops while the pet is still falling.
+- `fall_land`: Physics-only impact follow-up on atlas row 14. It starts only after the pet reaches the bottom and shows touch-down into a forward tumble.
+- `fall_getup`: Physics-only recovery follow-up on atlas row 15. It extends the recovery with eight prone-to-standing get-up frames.
 - `cry`: Can be selected from the right-click menu.
 - `sleep`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler. This is a dedicated v0.2.3 sleep action instead of an alias to `cry`.
 - `idle_alt`: Can be selected from the right-click menu, can be picked randomly as an idle variant, and can be picked randomly as a single-click reaction. This replaces the old `wake` label.
@@ -109,7 +110,7 @@ Implemented v0.3.0 runtime physics and menu improvements:
 - Package and Neutralino metadata are updated to `0.3.0`.
 - Drag release samples the last 120ms of pointer movement, so fast horizontal release adds short inertia while slow release remains a precise position adjustment.
 - Horizontal inertia release now uses the direction-specific run action plus speed-based lean, stretch, and frame offset so left/right glides read as an active movement instead of a sliding window only.
-- Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and direct landing without bounce; the `fall_land` row now plays a tumble-and-get-up recovery after the pet reaches the bottom.
+- Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and direct landing without bounce; `fall_land` handles the impact tumble and `fall_getup` extends the prone-to-standing recovery.
 - Pet window coordinates are clamped during dragging, release physics, menu restoration, and startup restore so the pet remains interactable at desktop edges.
 - Animation metadata supports optional `motionX` tracks, and `walk` uses a small horizontal frame offset to make the light jog less stiff.
 - The right-click menu chooses left or right docking based on available screen width and restores the pet anchor position after the menu closes.

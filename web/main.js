@@ -318,22 +318,26 @@
       : frameIndex % animation.frames.length;
   }
 
-  // The generated fall sequence is split across airborne and landing rows.
-  // Keep hand-on-ground frames for the moment the native window has reached the landing y.
+  // The generated fall sequence is split across airborne, impact, and get-up rows.
+  // Keep ground-contact frames for after the native window has reached the landing y.
   async function playFallLandingAnimation() {
-    const landingAction = hasAnimation("fall_land") ? "fall_land" : "fall";
-    if (activeAction !== "fall" || !hasAnimation(landingAction)) {
+    const landingActions = ["fall_land", "fall_getup"].filter(hasAnimation);
+    const sequence = landingActions.length ? landingActions : ["fall"].filter(hasAnimation);
+    if (activeAction !== "fall" || !sequence.length) {
       fallPlaybackPhase = null;
       return;
     }
 
     fallPlaybackPhase = "land";
-    await setAction(landingAction, { persistAction: false });
-    const animation = getAnimation(landingAction);
-    frameIndex = 0;
-    lastFrameAt = 0;
-    renderCurrentFrame();
-    await wait((animation.frames.length / Math.max(1, animation.fps)) * 1000 + fallLandingHoldMs);
+    for (const action of sequence) {
+      await setAction(action, { persistAction: false });
+      const animation = getAnimation(action);
+      frameIndex = 0;
+      lastFrameAt = 0;
+      renderCurrentFrame();
+      await wait((animation.frames.length / Math.max(1, animation.fps)) * 1000);
+    }
+    await wait(fallLandingHoldMs);
     fallPlaybackPhase = null;
   }
 
@@ -863,7 +867,7 @@
 
     const persistAction = options.persistAction !== false;
     activeAction = resolvedAction;
-    if (resolvedAction !== "fall" && resolvedAction !== "fall_land") {
+    if (resolvedAction !== "fall" && resolvedAction !== "fall_land" && resolvedAction !== "fall_getup") {
       fallPlaybackPhase = null;
     }
     if (persistAction) {
