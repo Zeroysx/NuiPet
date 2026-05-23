@@ -144,3 +144,4 @@
 - Added direction-aware horizontal inertia feedback with temporary run actions plus speed-decaying lean, stretch, offset, and light trailing shadow during left/right glide release.
 - Removed vertical landing bounce and replaced the `fall_land` row with a tumble-and-get-up recovery sequence.
 - Reworked the fall sequence into 24 generated frames across weightless airborne `fall`, impact-tumble `fall_land`, and extended prone-to-standing `fall_getup` rows.
+- Extended the fall sequence to 48 frames with 16-frame airborne, impact, and get-up rows, and raised playback fps so the fall recovery reads longer and more continuous.
