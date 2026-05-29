@@ -145,3 +145,48 @@
 - Removed vertical landing bounce and replaced the `fall_land` row with a tumble-and-get-up recovery sequence.
 - Reworked the fall sequence into 24 generated frames across weightless airborne `fall`, impact-tumble `fall_land`, and extended prone-to-standing `fall_getup` rows.
 - Extended the fall sequence to 48 frames with 16-frame airborne, impact, and get-up rows, and raised playback fps so the fall recovery reads longer and more continuous.
+
+## 2026-05-23
+
+- Added a horizontal inertia slide-tackle visual state that lowers, skews, squashes, and trails the pet during fast left/right glide release without adding new atlas rows.
+- Updated v0.3.0 documentation to describe the improved left/right inertia slide feedback.
+- Reworked horizontal inertia slide feedback into a low slide-step that decays with speed and removes the previous fall-like recovery motion at the end of the glide.
+- Strengthened the low slide-step speed curve and visual range so ordinary horizontal inertia releases show a visible low sliding posture before smoothly returning to idle height.
+- Anchored the low slide-step inside the native frame bounds so the feet no longer clip during horizontal inertia sliding.
+- Added a delayed `app.killProcess()` fallback to right-click and tray quit actions so closing the desktop pet does not leave the packaged process alive.
+
+## 2026-05-24
+
+- Added a lower-body overlay during horizontal inertia sliding so the slide effect shows clearer limb motion synced to the current run frame cadence.
+- Rebuilt the horizontal inertia visual as an ice-glide balance pose with forward glide, counter-lean, light lift, and no lower-body overlay or slide-tackle styling.
+- Completed the ice-glide tuning by driving forward offset, counter-lean, stretch, and trail from the same speed-decay curve so ordinary horizontal releases visibly glide and naturally return upright.
+- Reworked the release-only horizontal inertia visual into a stronger brake-slide stop animation that preserves normal drag running, then drops into a low counter-leaning slide with a distinct braking trail after release.
+- Added real `slide_stop_right` and `slide_stop_left` spritesheet frames on row 1/2 columns 8-15 and routed horizontal inertia release to those atlas frames instead of CSS shape distortion.
+- Replaced the transformed run-derived slide stop frames with subagent-generated low slide-stop pose sequences that use distinct arm and leg poses for clearer ice-glide braking.
+- Smoothed horizontal inertia braking with exponential speed decay, a capped horizontal throw speed, a longer minimum slide-stop window, and slower slide-stop frame playback.
+- Marked horizontal drag physics as complete in the documentation and added a development plan for diagonal composite drag-release physics.
+- Added normalized diagonal release classification so mixed horizontal and vertical throw velocity is routed separately from pure slide-stop or pure fall.
+- Added `diagonal_pounce_right` and `diagonal_pounce_left` physics actions, currently using the row 13 airborne imbalance frames as the fly-pounce phase before landing recovery or brake sliding.
+- Added a diagonal release state machine that plays the pounce phase first, then switches to fall recovery or horizontal slide-stop according to the landing moment and remaining horizontal speed.
+- Expanded asset validation to check slide-stop and diagonal-pounce direction mappings.
+- Updated the README physics plan to mark diagonal drag release behavior complete and document the current row 13 pounce-frame reuse.
+
+## 2026-05-25
+
+- Regenerated diagonal pounce resources with subagent-produced low forward-pounce frames on row 11 and row 12 columns 8-15 instead of reusing the row 13 fall frames.
+- Tightened diagonal release classification so only clearly downward throws with strong, balanced horizontal and vertical components trigger the pounce state.
+- Shifted diagonal pounce landing slightly below the release point to better match delayed human release perception.
+- Updated documentation to describe the dedicated diagonal pounce rows and stricter trigger behavior.
+- Relaxed diagonal release classification so visible off-axis throws are no longer blocked by the full vertical fall threshold or downward-only requirement.
+- Preserved airborne horizontal velocity during diagonal pounce with light air drag, reserving hard brake decay and stop thresholds for the post-landing slide.
+- Redesigned diagonal pounce frames as a low front-pounce sequence and removed the extra runtime mirror that made left diagonal releases face the wrong direction.
+- Mirrored the row 12 diagonal pounce frames at the asset level so leftward diagonal releases use a true left-facing pounce without runtime double-flip risk.
+- Removed the horizontal slide-stop follow-up from diagonal pounce landing so the pet no longer appears to stand up and then abruptly kick or fall again.
+- Added newly generated `diagonal_pounce_land_right` and `diagonal_pounce_land_left` recovery actions on row 5/6 columns 8-15, and routed diagonal pounce touch-down into those completion frames before restoring the previous action.
+- Removed the CSS transform keyframes from diagonal pounce playback so the generated atlas frames are no longer distorted by runtime rotation, scaling, or offset animation.
+
+## 2026-05-30
+
+- Regenerated the diagonal pounce landing frames from an image-generated recovery strip, replacing the broken subagent cut with a visually checked low touch-down, brace, crouch, and stand sequence.
+- Rebuilt row 5/6 columns 8-15 in `spritesheet.webp` from the checked landing atlas and verified the final WebP can be decoded back into a QA contact sheet.
+- Stopped diagonal landing physics from extending residual horizontal slide after the landing completion animation has finished, so the pet restores its previous action immediately after the recovery frames.

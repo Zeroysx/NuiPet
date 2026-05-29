@@ -25,13 +25,20 @@
   const dragVelocityWindowMs = 120;
   const inertiaVelocityThreshold = 0.45;
   const fallVelocityThreshold = 0.62;
+  const diagonalVerticalVelocityThreshold = 0.28;
+  const diagonalReleaseMinRatio = 0.42;
+  const diagonalReleaseMaxRatio = 2.65;
+  const diagonalReleaseMinVectorSpeed = 0.58;
+  const diagonalPounceDropPx = 22;
   const maxThrowVelocity = 2.4;
-  const horizontalFriction = 0.0046;
+  const maxHorizontalThrowVelocity = 1.15;
+  const airHorizontalDragDecayMs = 4200;
+  const diagonalLandingBrakeDecayMs = 260;
+  const horizontalBrakeDecayMs = 520;
+  const horizontalBrakeMinDurationMs = 900;
+  const horizontalBrakeStopSpeed = 0.035;
   const gravity = 0.0052;
   const fallLandingHoldMs = 90;
-  const inertiaVisualMaxOffset = 7;
-  const inertiaVisualMaxTilt = 5;
-  const inertiaVisualMaxStretch = 0.06;
   const displayBoundsCacheMs = 5000;
   const fallbackFrame = {
     columns: 1,
@@ -94,6 +101,7 @@
   let nextIdleAt = lastInteractionAt + 6500;
   let textIndexes = Object.create(null);
   let actionAfterTransient = null;
+  let exiting = false;
 
   function isNeutralino() {
     return Boolean(native && native.app && native.window);
@@ -211,6 +219,32 @@
     return resolveAction((petData && petData.dragAction) || "run_right");
   }
 
+  // Release-only slide stop actions live in the spare run-row frames.
+  function getSlideStopAction(direction = dragDirection) {
+    const actions = petData && petData.slideStopActionsByDirection;
+    const action = actions && actions[direction];
+    const resolvedAction = resolveAction(action);
+    return hasAnimation(resolvedAction) ? resolvedAction : getDragAction(direction);
+  }
+
+  function getDiagonalPounceAction(direction = dragDirection) {
+    const actions = petData && petData.diagonalPounceActionsByDirection;
+    const fallback = direction === "left" ? "diagonal_pounce_left" : "diagonal_pounce_right";
+    const resolvedAction = resolveAction((actions && actions[direction]) || fallback);
+    if (hasAnimation(resolvedAction)) {
+      return resolvedAction;
+    }
+
+    return hasAnimation("fall") ? "fall" : getSlideStopAction(direction);
+  }
+
+  function getDiagonalPounceLandingAction(direction = dragDirection) {
+    const actions = petData && petData.diagonalPounceLandingActionsByDirection;
+    const action = actions && actions[direction];
+    const resolvedAction = resolveAction(action);
+    return hasAnimation(resolvedAction) ? resolvedAction : null;
+  }
+
   function getGroup(name, fallback) {
     const group = petData && petData.animationGroups && petData.animationGroups[name];
     const animations = Array.isArray(group) ? group : fallback;
@@ -282,26 +316,27 @@
     document.documentElement.style.setProperty("--action-offset-y", `${offsetY * settings.scale}px`);
   }
 
-  function setInertiaVisuals(vx = 0) {
-    const normalized = Math.min(1, Math.abs(vx) / maxThrowVelocity);
-    const direction = vx < 0 ? -1 : 1;
-    const offset = normalized * inertiaVisualMaxOffset * direction * settings.scale;
-    const tilt = normalized * inertiaVisualMaxTilt * direction;
-    const stretch = 1 + normalized * inertiaVisualMaxStretch;
-    const shadow = normalized * -4 * direction;
+  function setSpriteFrameVisuals(row, column, frameSlot) {
+    const spriteX = `-${column * grid.frameWidth}px`;
+    const spriteY = `-${row * grid.frameHeight}px`;
 
-    document.documentElement.style.setProperty("--inertia-offset-x", `${offset.toFixed(2)}px`);
-    document.documentElement.style.setProperty("--inertia-tilt", `${tilt.toFixed(2)}deg`);
-    document.documentElement.style.setProperty("--inertia-stretch", stretch.toFixed(3));
-    document.documentElement.style.setProperty("--inertia-shadow-x", `${shadow.toFixed(2)}px`);
+    pet.style.backgroundPosition = `${spriteX} ${spriteY}`;
+  }
+
+  function setInertiaVisuals(vx = 0, braking = false) {
+    const speed = Math.abs(vx);
+    const visualSpeed = speed > horizontalBrakeStopSpeed ? speed : 0;
+    const brakeActive = braking && visualSpeed > 0;
+
+    pet.classList.toggle("is-brake-sliding", brakeActive);
   }
 
   function clearInertiaVisuals() {
-    pet.classList.remove("is-gliding");
-    document.documentElement.style.setProperty("--inertia-offset-x", "0px");
-    document.documentElement.style.setProperty("--inertia-tilt", "0deg");
-    document.documentElement.style.setProperty("--inertia-stretch", "1");
-    document.documentElement.style.setProperty("--inertia-shadow-x", "0px");
+    pet.classList.remove("is-gliding", "is-brake-sliding", "is-diagonal-pouncing");
+  }
+
+  function clearHorizontalInertiaVisuals() {
+    pet.classList.remove("is-gliding", "is-brake-sliding");
   }
 
   function getFrameSlot(animation) {
@@ -465,13 +500,35 @@
   }
 
   async function exitApp() {
+    if (exiting) {
+      return;
+    }
+
+    exiting = true;
     await hideMenu();
     if (!isNeutralino() || !native.app || !native.app.exit) {
       window.close();
       return;
     }
 
-    await tryNative(() => native.app.exit());
+    window.setTimeout(() => {
+      if (native.app && native.app.killProcess) {
+        tryNative(() => native.app.killProcess());
+        return;
+      }
+
+      window.close();
+    }, 450);
+
+    native.app.exit(0).catch(async (error) => {
+      console.warn("Neutralino app exit failed:", error);
+      if (native.app && native.app.killProcess) {
+        await tryNative(() => native.app.killProcess());
+        return;
+      }
+
+      window.close();
+    });
   }
 
   async function applyWindow() {
@@ -621,6 +678,7 @@
     clearInertiaVisuals();
     pet.classList.remove("is-falling");
     if (actionBeforePhysics) {
+      setFacing(1);
       setAction(actionBeforePhysics, { persistAction: false });
       actionBeforePhysics = null;
     }
@@ -632,6 +690,38 @@
 
   function clampVelocity(value) {
     return Math.max(-maxThrowVelocity, Math.min(maxThrowVelocity, value));
+  }
+
+  function clampHorizontalVelocity(value) {
+    return Math.max(-maxHorizontalThrowVelocity, Math.min(maxHorizontalThrowVelocity, value));
+  }
+
+  // Horizontal braking uses exponential decay so the slide eases out instead of
+  // losing a fixed amount of speed every frame.
+  function decayHorizontalVelocity(vx, dt) {
+    if (!vx) {
+      return 0;
+    }
+
+    const next = vx * Math.exp(-dt / horizontalBrakeDecayMs);
+    if (Math.abs(next) < horizontalBrakeStopSpeed) {
+      return 0;
+    }
+
+    return next;
+  }
+
+  function decayAirHorizontalVelocity(vx, dt) {
+    return vx ? vx * Math.exp(-dt / airHorizontalDragDecayMs) : 0;
+  }
+
+  function decayDiagonalLandingVelocity(vx, dt) {
+    if (!vx) {
+      return 0;
+    }
+
+    const next = vx * Math.exp(-dt / diagonalLandingBrakeDecayMs);
+    return Math.abs(next) < horizontalBrakeStopSpeed ? 0 : next;
   }
 
   function recordDragSample(event) {
@@ -662,16 +752,45 @@
     };
   }
 
-  function shouldStartPhysics(velocity) {
+  // Normalize each axis by its own trigger threshold so diagonal throws are
+  // separated from dominant horizontal slides and dominant vertical drops.
+  function classifyReleaseVelocity(velocity) {
     const speedX = Math.abs(velocity.x);
     const speedY = Math.abs(velocity.y);
+    const hasGlide = speedX >= inertiaVelocityThreshold;
+    const hasFall = speedY >= fallVelocityThreshold;
+    const direction = velocity.x < 0 ? "left" : "right";
 
-    return speedX >= inertiaVelocityThreshold || speedY >= fallVelocityThreshold;
+    if (hasGlide && speedY >= diagonalVerticalVelocityThreshold) {
+      const ratio = (speedX / inertiaVelocityThreshold) / (speedY / fallVelocityThreshold);
+      const vectorSpeed = Math.hypot(velocity.x, velocity.y);
+      if (vectorSpeed >= diagonalReleaseMinVectorSpeed && ratio >= diagonalReleaseMinRatio && ratio <= diagonalReleaseMaxRatio) {
+        return { kind: "diagonal", direction, hasGlide: true, hasFall: true };
+      }
+    }
+
+    if (hasGlide && hasFall) {
+      const ratio = (speedX / inertiaVelocityThreshold) / (speedY / fallVelocityThreshold);
+      return ratio >= 1
+        ? { kind: "horizontal", direction, hasGlide: true, hasFall: false }
+        : { kind: "vertical", direction, hasGlide: false, hasFall: true };
+    }
+
+    if (hasGlide) {
+      return { kind: "horizontal", direction, hasGlide: true, hasFall: false };
+    }
+
+    if (hasFall) {
+      return { kind: "vertical", direction, hasGlide: false, hasFall: true };
+    }
+
+    return { kind: "none", direction, hasGlide: false, hasFall: false };
   }
 
   // Animate a quick throw after release, but route every frame through screen bounds.
   async function playReleasePhysics(velocity, landingY = null) {
-    if (!shouldStartPhysics(velocity) || !isNeutralino() || !native.window.getPosition || !native.window.move) {
+    const release = classifyReleaseVelocity(velocity);
+    if (release.kind === "none" || !isNeutralino() || !native.window.getPosition || !native.window.move) {
       return false;
     }
 
@@ -680,16 +799,23 @@
       return false;
     }
 
-    const hasFall = Math.abs(velocity.y) >= fallVelocityThreshold;
-    const hasGlide = Math.abs(velocity.x) >= inertiaVelocityThreshold;
+    const hasFall = release.hasFall;
+    const hasGlide = release.hasGlide;
+    const hasDiagonalPounce = release.kind === "diagonal";
     let x = start.x;
     let y = start.y;
-    let vx = hasGlide ? clampVelocity(velocity.x) : 0;
+    let vx = hasGlide ? clampHorizontalVelocity(velocity.x) : 0;
     let vy = hasFall ? clampVelocity(velocity.y) : 0;
     let lastAt = performance.now();
-    const floorY = hasFall && Number.isFinite(landingY)
-      ? Math.max(start.y, landingY)
-      : start.y;
+    const physicsStartedAt = lastAt;
+    let diagonalLanded = false;
+    let diagonalLandingEndsAt = 0;
+    const pounceFloorY = start.y + diagonalPounceDropPx * getNativeScale();
+    const floorY = hasDiagonalPounce
+      ? pounceFloorY
+      : hasFall && Number.isFinite(landingY)
+        ? Math.max(start.y, landingY)
+        : start.y;
 
     physicsAnimating = true;
     if (hasFall || hasGlide) {
@@ -697,15 +823,21 @@
     }
 
     if (hasGlide) {
-      setDragDirection(vx < 0 ? "left" : "right");
-      setInertiaVisuals(vx);
-      pet.classList.add("is-gliding");
-      if (!hasFall) {
-        await setAction(getDragAction(vx < 0 ? "left" : "right"), { persistAction: false });
+      setDragDirection(release.direction);
+      setInertiaVisuals(vx, release.kind === "horizontal");
+      if (release.kind === "horizontal") {
+        pet.classList.add("is-gliding");
+        await setAction(getSlideStopAction(release.direction), { persistAction: false });
       }
     }
 
-    if (hasFall) {
+    if (hasDiagonalPounce) {
+      fallPlaybackPhase = null;
+      setFacing(1);
+      pet.classList.remove("is-dropped", "is-falling");
+      pet.classList.add("is-diagonal-pouncing");
+      await setAction(getDiagonalPounceAction(release.direction), { persistAction: false });
+    } else if (hasFall) {
       if (hasAnimation("fall")) {
         fallPlaybackPhase = "air";
         await setAction("fall", { persistAction: false });
@@ -731,13 +863,14 @@
         const dt = Math.min(32, Math.max(1, now - lastAt));
         lastAt = now;
 
-        if (vx > 0) {
-          vx = Math.max(0, vx - horizontalFriction * dt);
-        } else if (vx < 0) {
-          vx = Math.min(0, vx + horizontalFriction * dt);
-        }
+        const airborneDiagonal = hasDiagonalPounce && !diagonalLanded;
+        vx = airborneDiagonal
+          ? decayAirHorizontalVelocity(vx, dt)
+          : hasDiagonalPounce
+            ? decayDiagonalLandingVelocity(vx, dt)
+            : decayHorizontalVelocity(vx, dt);
         if (hasGlide) {
-          setInertiaVisuals(vx);
+          setInertiaVisuals(vx, release.kind === "horizontal" || diagonalLanded);
         }
 
         if (hasFall) {
@@ -750,6 +883,17 @@
         if (hasFall && y > floorY) {
           y = floorY;
           vy = 0;
+          if (hasDiagonalPounce && !diagonalLanded) {
+            diagonalLanded = true;
+            pet.classList.remove("is-diagonal-pouncing");
+            clearHorizontalInertiaVisuals();
+            const landingAction = getDiagonalPounceLandingAction(release.direction);
+            if (landingAction) {
+              await setAction(landingAction, { persistAction: false });
+              const animation = getAnimation(landingAction);
+              diagonalLandingEndsAt = now + (animation.frames.length / Math.max(1, animation.fps)) * 1000;
+            }
+          }
         }
 
         const nextPosition = await clampWindowPosition({ x, y });
@@ -757,13 +901,19 @@
         y = nextPosition.y;
         if (x === 0 || x === Math.max(0, (displayBoundsCache ? displayBoundsCache.width : 0) - getWindowSize().width)) {
           vx = 0;
-          clearInertiaVisuals();
+          clearHorizontalInertiaVisuals();
         }
         await tryNative(() => native.window.move(nextPosition.x, nextPosition.y));
 
-        const movingHorizontally = Math.abs(vx) > 0.03;
+        const brakeElapsed = now - physicsStartedAt;
         const movingVertically = hasFall && (Math.abs(vy) > 0.04 || y < floorY - 0.5);
-        if (movingHorizontally || movingVertically) {
+        const finishingDiagonalLanding = hasDiagonalPounce && now < diagonalLandingEndsAt;
+        if (hasDiagonalPounce && diagonalLanded && !finishingDiagonalLanding) {
+          vx = 0;
+        }
+        const movingHorizontally = hasGlide
+          && (Math.abs(vx) > horizontalBrakeStopSpeed || (release.kind === "horizontal" && brakeElapsed < horizontalBrakeMinDurationMs));
+        if (movingHorizontally || movingVertically || finishingDiagonalLanding) {
           physicsFrame = window.requestAnimationFrame(step);
           return;
         }
@@ -771,16 +921,30 @@
         physicsFrame = 0;
         pet.classList.remove("is-falling");
         clearInertiaVisuals();
-        if (hasFall) {
+        if (hasDiagonalPounce) {
+          physicsAnimating = false;
+          if (actionBeforePhysics) {
+            setFacing(1);
+            await setAction(actionBeforePhysics, { persistAction: false });
+            actionBeforePhysics = null;
+          }
+        } else if (hasFall) {
+          if (activeAction !== "fall" && hasAnimation("fall")) {
+            setFacing(1);
+            fallPlaybackPhase = "air";
+            await setAction("fall", { persistAction: false });
+          }
           await playFallLandingAnimation();
           physicsAnimating = false;
           if (actionBeforePhysics) {
+            setFacing(1);
             await setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
           }
         } else {
           physicsAnimating = false;
           if (actionBeforePhysics) {
+            setFacing(1);
             await setAction(actionBeforePhysics, { persistAction: false });
             actionBeforePhysics = null;
           }
@@ -1051,7 +1215,7 @@
     const interval = 1000 / Math.max(1, animation.fps);
 
     if (!lastFrameAt || timestamp - lastFrameAt >= interval) {
-      if (animation.loop === false && !fallPlaybackPhase && frameIndex >= animation.frames.length) {
+      if (animation.loop === false && !fallPlaybackPhase && !physicsAnimating && frameIndex >= animation.frames.length) {
         const nextAction = actionAfterTransient || animation.next || settings.action || getDefaultAction();
         actionAfterTransient = null;
         setAction(nextAction, { persistAction: false });
@@ -1062,7 +1226,7 @@
       const frameSlot = getFrameSlot(animation);
       const column = animation.frames[frameSlot] || 0;
       const row = animation.row;
-      pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
+      setSpriteFrameVisuals(row, column, frameSlot);
       setActionOffsets(animation, frameSlot);
       frameIndex += 1;
       lastFrameAt = timestamp;
@@ -1080,7 +1244,7 @@
     const frameSlot = getFrameSlot(animation);
     const column = animation.frames[frameSlot] || 0;
     const row = animation.row || 0;
-    pet.style.backgroundPosition = `-${column * grid.frameWidth}px -${row * grid.frameHeight}px`;
+    setSpriteFrameVisuals(row, column, frameSlot);
     setActionOffsets(animation, frameSlot);
   }
 

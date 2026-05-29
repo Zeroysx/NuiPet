@@ -12,9 +12,15 @@
   "animations": {
     "idle": { "row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
     "run_right": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
+    "slide_stop_right": { "row": 1, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 8, "loop": false },
     "run_left": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
+    "slide_stop_left": { "row": 2, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 8, "loop": false },
     "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
     "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8, "motionY": [0, -18, -34, -18, 0] },
+    "diagonal_pounce_right": { "row": 11, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 13, "loop": false },
+    "diagonal_pounce_left": { "row": 12, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 13, "loop": false },
+    "diagonal_pounce_land_right": { "row": 5, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 12, "loop": false },
+    "diagonal_pounce_land_left": { "row": 6, "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 12, "loop": false },
     "fall": { "row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "fps": 12 },
     "fall_land": { "row": 14, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "fps": 12, "loop": false },
     "fall_getup": { "row": 15, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "fps": 10, "loop": false },
@@ -55,12 +61,30 @@
     "right": "run_right",
     "left": "run_left"
   },
+  "slideStopActionsByDirection": {
+    "right": "slide_stop_right",
+    "left": "slide_stop_left"
+  },
+  "diagonalPounceActionsByDirection": {
+    "right": "diagonal_pounce_right",
+    "left": "diagonal_pounce_left"
+  },
+  "diagonalPounceLandingActionsByDirection": {
+    "right": "diagonal_pounce_land_right",
+    "left": "diagonal_pounce_land_left"
+  },
   "dragActions": ["run_right", "run_left"],
   "dragAction": "run_right",
   "defaultAction": "idle",
   "actionNotes": {
     "run_right": "Drag-only right-facing running variant; renamed from happy_run.",
     "run_left": "Drag-only left-facing running variant; renamed from run.",
+    "slide_stop_right": "Physics-only right-facing release animation on row 1 frames 8-15, generated as a distinct low slide-stop pose sequence for horizontal inertia after drag release.",
+    "slide_stop_left": "Physics-only left-facing release animation on row 2 frames 8-15, generated as a distinct low slide-stop pose sequence for horizontal inertia after drag release.",
+    "diagonal_pounce_right": "Physics-only rightward diagonal release pounce on row 11 frames 8-15, using a low front-pounce sequence distinct from horizontal slide-stop and row 13 fall animation.",
+    "diagonal_pounce_left": "Physics-only leftward diagonal release pounce on row 12 frames 8-15, using a horizontally mirrored low front-pounce sequence without runtime mirroring so left releases face left.",
+    "diagonal_pounce_land_right": "Physics-only rightward diagonal pounce landing completion on row 5 frames 8-15, newly generated as a low touch-down recovery into a stable stand without reusing fall, slide-stop, or pounce frames.",
+    "diagonal_pounce_land_left": "Physics-only leftward diagonal pounce landing completion on row 6 frames 8-15, newly generated as a low touch-down recovery into a stable stand without reusing fall, slide-stop, or pounce frames.",
     "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
     "sleep": "Dedicated v0.2.3 prone sleep row with a small attached Z cue and a longer closed-eye hold.",
     "fall": "Physics-only generated 16-frame airborne falling row with stronger weightless imbalance during fast vertical release.",

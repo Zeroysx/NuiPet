@@ -198,6 +198,33 @@ if (pet) {
       });
     }
 
+    if (pet.slideStopActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.slideStopActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`slideStopActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
+    if (pet.diagonalPounceActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.diagonalPounceActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`diagonalPounceActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
+    if (pet.diagonalPounceLandingActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.diagonalPounceLandingActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`diagonalPounceLandingActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
     if (pet.defaultAction && !safeAnimations.has(pet.defaultAction)) {
       errors.push(`defaultAction "${pet.defaultAction}" references missing or unsafe animation.`);
     }
