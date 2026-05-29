@@ -117,6 +117,7 @@ Implemented v0.3.0 runtime physics and menu improvements:
 - Diagonal release now has a normalized velocity classifier and a low pounce phase, so mixed horizontal and vertical throws do not collapse into only slide-stop or only fall behavior while near-horizontal movement still stays on the slide-stop path.
 - Diagonal pounce preserves horizontal velocity through the airborne arc with only light air drag, then plays a dedicated landing completion sequence while applying a short pounce-specific landing brake without playing the pure horizontal slide-stop action.
 - The diagonal pounce landing rows have been regenerated and checked from the final WebP output, so the landing completion now reads as touch-down, brace, crouch, and stand instead of holding broken or unrelated frames after impact.
+- The diagonal pounce landing frames are scaled against the existing idle/run sprite height, keeping the recovery action visually consistent with the rest of the atlas.
 - After the diagonal landing completion animation finishes, residual horizontal velocity is cleared before restoring the previous action to avoid post-landing slide or animation stutter.
 - Pet window coordinates are clamped during dragging, release physics, menu restoration, and startup restore so the pet remains interactable at desktop edges.
 - Animation metadata supports optional `motionX` tracks, and `walk` uses a small horizontal frame offset to make the light jog less stiff.

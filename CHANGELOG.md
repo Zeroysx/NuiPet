@@ -191,3 +191,4 @@
 - Rebuilt row 5/6 columns 8-15 in `spritesheet.webp` from the checked landing atlas and verified the final WebP can be decoded back into a QA contact sheet.
 - Stopped diagonal landing physics from extending residual horizontal slide after the landing completion animation has finished, so the pet restores its previous action immediately after the recovery frames.
 - Rebuilt and replaced the `v0.3.0` portable release resources so the packaged app includes the regenerated diagonal landing spritesheet.
+- Rescaled the diagonal pounce landing frames to match the existing idle/run sprite height while preserving the checked landing motion.
