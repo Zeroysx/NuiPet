@@ -190,3 +190,4 @@
 - Regenerated the diagonal pounce landing frames from an image-generated recovery strip, replacing the broken subagent cut with a visually checked low touch-down, brace, crouch, and stand sequence.
 - Rebuilt row 5/6 columns 8-15 in `spritesheet.webp` from the checked landing atlas and verified the final WebP can be decoded back into a QA contact sheet.
 - Stopped diagonal landing physics from extending residual horizontal slide after the landing completion animation has finished, so the pet restores its previous action immediately after the recovery frames.
+- Rebuilt and replaced the `v0.3.0` portable release resources so the packaged app includes the regenerated diagonal landing spritesheet.

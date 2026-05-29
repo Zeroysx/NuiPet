@@ -237,6 +237,6 @@ The intended remote is a private repository at `Zeroysx/NuiPet`. Development sho
 
 ## Releases
 
-Packaged release builds are stored under `releases/`, with one subdirectory per version. The current archived Windows x64 package is in `releases/v0.2.3/` and includes the guided `NuiPet-v0.2.3-setup.exe` installer plus the portable files `NuiPet-win_x64.exe` and `resources.neu`. New installer builds should use the v0.2.3 guided Inno Setup path. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
+Packaged release builds are stored under `releases/`, with one subdirectory per version. The current v0.3.0 Windows x64 portable package is in `releases/v0.3.0/` and includes the rebuilt `NuiPet-win_x64.exe` plus `resources.neu` with the regenerated diagonal landing spritesheet. The v0.2.3 archive remains the latest guided installer package. New installer builds should use the guided Inno Setup path. The version README contains the Chinese release notes, author attribution, usage scope, links, BUG feedback email, version, and technical stack section.
 
 GitHub release `v0.1.0` publishes the same Windows x64 package files as release assets.
