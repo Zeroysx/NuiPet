@@ -192,3 +192,8 @@
 - Stopped diagonal landing physics from extending residual horizontal slide after the landing completion animation has finished, so the pet restores its previous action immediately after the recovery frames.
 - Rebuilt and replaced the `v0.3.0` portable release resources so the packaged app includes the regenerated diagonal landing spritesheet.
 - Rescaled the diagonal pounce landing frames to match the existing idle/run sprite height while preserving the checked landing motion.
+- Expanded the NuiPet atlas to `32x22` so high-motion actions can use independent rows instead of sharing half rows.
+- Smoothed drag runs, slide stops, diagonal pounces, diagonal landings, and fall recovery actions to about 30 fps with 24-32 frame rows while keeping low-motion idle and rest actions at lower fps.
+- Expanded `jump` and `walk` animation metadata with synchronized `motionY` and `motionX` tracks for the new frame counts.
+- Added `tmp/smooth-30fps-work/` QA outputs, including a contact sheet, review JSON, and per-action checker-background preview videos for independent visual review.
+- Rebuilt the `v0.3.0` portable release executable and `resources.neu` with the expanded smooth-animation atlas; installer generation still requires a local Inno Setup compiler.

@@ -6,7 +6,7 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 
 - Transparent frameless desktop pet window.
 - Always-on-top behavior with a toggle in the pet menu.
-- Sprite animation from a WebP atlas at `192x208` pixels per frame.
+- Sprite animation from a `32x22` WebP atlas at `192x208` pixels per frame.
 - Actions are mapped to the verified atlas row meanings: idle, direction-specific drag runs, wave, jump, cry, sleep, second idle, light jog, thinking, compatibility long idle, nod, and sitting.
 - v0.2.0 expands the atlas to `8x14` and adds idle micro-actions for breathing, looking around, stretching, sitting, and blinking.
 - v0.2.1 defines the action menu from `pet.json`, so action labels and menu trigger buttons stay bound to the same metadata.
@@ -20,12 +20,13 @@ NuiPet is a desktop pet project based on the virtual streamer 鹿弈Nui. The Win
 - Visual feedback includes click pop, double-click hop, drag highlighting, drop squash, and bubble entrance animation.
 - The `jump` action uses metadata-driven y-axis motion so the sprite visibly lifts and lands during playback.
 - Animation metadata can define optional `motionX` and `motionY` frame offsets for small in-place movement fixes without adding new atlas rows.
+- High-motion physics and drag animations use interpolated 24-32 frame rows at about 30 fps, while mostly static idle/rest actions keep lower fps timing.
 - Dragging temporarily plays the `run_right` or `run_left` drag running animation and restores the previous action after the drag ends.
 - The drag animation flips horizontally when dragging left so the pet faces the drag direction.
 - Drag-facing direction uses direction-specific run rows plus a small accumulated horizontal threshold, so pointer jitter at drag start does not flip the pet the wrong way.
 - Dragging is implemented with explicit window movement instead of native drag handoff, which keeps animation direction and always-on-top state consistent.
 - Fast drag release can trigger short horizontal inertia or vertical lift-and-fall physics while slow release remains a normal position adjustment.
-- Horizontal inertia release keeps the normal direction-aware running action during drag, then switches after release to independently generated atlas-backed `slide_stop_right` or `slide_stop_left` frames on row 1/2 columns 8-15; horizontal braking uses eased speed decay so the slide-stop reads longer and smoother.
+- Horizontal inertia release keeps the normal direction-aware running action during drag, then switches after release to independently generated atlas-backed `slide_stop_right` or `slide_stop_left` rows; horizontal braking uses eased speed decay so the slide-stop reads longer and smoother.
 - Diagonal fast release is classified separately when horizontal speed reaches inertia speed and the vertical component is visibly off-axis, plays the low `diagonal_pounce_right` or `diagonal_pounce_left` pounce first, then completes with a dedicated `diagonal_pounce_land_right` or `diagonal_pounce_land_left` recovery instead of freezing on the touch-down frame.
 - Dragging, throw physics, and saved window restoration clamp the pet inside the primary display so it cannot disappear beyond the desktop edge.
 - The window expands while the right-click menu is open so the menu docks beside the pet instead of covering it.
@@ -47,11 +48,11 @@ Current action keys and trigger conditions:
 - `run_left`: Drag-only left-facing running variant. It is not shown in the right-click menu. The old `run` key remains a compatibility alias.
 - `wave`: Can be selected from the right-click menu and can be picked randomly as a single-click reaction.
 - `jump`: Can be selected from the right-click menu and can be picked randomly as a double-click reaction. It defines `motionY` offsets for the visible jump arc.
-- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated 16-frame airborne row on atlas row 13 with stronger weightless imbalance and loops while the pet is still falling.
-- `fall_land`: Physics-only impact follow-up on atlas row 14. It starts only after the pet reaches the bottom and uses 16 frames for a smoother touch-down into a forward tumble.
-- `fall_getup`: Physics-only recovery follow-up on atlas row 15. It extends the recovery with 16 slower prone-to-standing get-up frames.
-- `diagonal_pounce_right` / `diagonal_pounce_left`: Physics-only actions used for diagonal drag release. They use dedicated low front-pounce frames on row 11 / row 12 columns 8-15 before the runtime transitions into the matching landing completion action; the left row is pre-mirrored and is not mirrored again at runtime.
-- `diagonal_pounce_land_right` / `diagonal_pounce_land_left`: Physics-only landing completion actions for diagonal pounce. They use newly generated row 5 / row 6 columns 8-15 frames to recover from touch-down into a stable stand without reusing fall, slide-stop, or pounce frames.
+- `fall`: Physics-only action used during fast vertical drag release. It uses an independently generated 32-frame airborne row on atlas row 19 at 30 fps with stronger weightless imbalance and loops while the pet is still falling.
+- `fall_land`: Physics-only impact follow-up on atlas row 20. It starts only after the pet reaches the bottom and uses 32 frames at 30 fps for a smoother touch-down into a forward tumble.
+- `fall_getup`: Physics-only recovery follow-up on atlas row 21. It extends the recovery with 32 frames at 30 fps for prone-to-standing get-up motion.
+- `diagonal_pounce_right` / `diagonal_pounce_left`: Physics-only actions used for diagonal drag release. They use dedicated 24-frame low front-pounce rows on row 15 / row 16 at 30 fps before the runtime transitions into the matching landing completion action; the left row is pre-mirrored and is not mirrored again at runtime.
+- `diagonal_pounce_land_right` / `diagonal_pounce_land_left`: Physics-only landing completion actions for diagonal pounce. They use dedicated 24-frame row 17 / row 18 recovery frames at 30 fps to recover from touch-down into a stable stand without reusing fall, slide-stop, or pounce frames.
 - `cry`: Can be selected from the right-click menu.
 - `sleep`: Can be selected from the right-click menu and can be picked randomly by the automatic idle scheduler. This is a dedicated v0.2.3 sleep action instead of an alias to `cry`.
 - `idle_alt`: Can be selected from the right-click menu, can be picked randomly as an idle variant, and can be picked randomly as a single-click reaction. This replaces the old `wake` label.
@@ -114,6 +115,9 @@ Implemented v0.3.0 runtime physics and menu improvements:
 - Drag release samples the last 120ms of pointer movement, so fast horizontal release adds short inertia while slow release remains a precise position adjustment.
 - Horizontal inertia release now keeps drag-time left/right run playback separate from release-time brake sliding; after release, `slide_stop_right` and `slide_stop_left` play independently generated low slide-stop atlas frames with slower playback and eased horizontal speed decay instead of relying on CSS skew, squash, stretch, or transformed running frames as the primary motion.
 - Fast vertical release triggers a short lift, a dedicated independently generated `fall` action, visible falling animation, and direct landing without bounce; `fall`, `fall_land`, and `fall_getup` now use 16-frame rows with higher fps for smoother airborne, impact, and recovery timing.
+- The primary atlas has been expanded to `32x22` so high-motion actions can move to independent rows and play at about 30 fps without shortening their original action timing.
+- Drag runs, slide stops, diagonal pounces, diagonal landings, fall, fall-land, and fall-getup now use 24-32 frame smoothed rows; `jump` and `walk` also have synchronized expanded `motionY` / `motionX` metadata.
+- Smooth-animation QA artifacts are generated under `tmp/smooth-30fps-work/`, including a contact sheet, review JSON, and per-action checker-background preview videos.
 - Diagonal release now has a normalized velocity classifier and a low pounce phase, so mixed horizontal and vertical throws do not collapse into only slide-stop or only fall behavior while near-horizontal movement still stays on the slide-stop path.
 - Diagonal pounce preserves horizontal velocity through the airborne arc with only light air drag, then plays a dedicated landing completion sequence while applying a short pounce-specific landing brake without playing the pure horizontal slide-stop action.
 - The diagonal pounce landing rows have been regenerated and checked from the final WebP output, so the landing completion now reads as touch-down, brace, crouch, and stand instead of holding broken or unrelated frames after impact.

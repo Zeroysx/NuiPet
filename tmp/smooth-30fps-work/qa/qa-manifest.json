@@ -1,0 +1,18 @@
+{
+  "atlas": {
+    "columns": 32,
+    "rows": 22,
+    "frameWidth": 192,
+    "frameHeight": 208
+  },
+  "outputs": {
+    "contactSheet": "tmp/smooth-30fps-work/qa/smooth-30fps-contact.png",
+    "reviewJson": "tmp/smooth-30fps-work/qa/smooth-30fps-review.json",
+    "previewVideos": "tmp/smooth-30fps-work/qa/videos/*.mp4"
+  },
+  "notes": [
+    "High-motion actions use 24 or 32 frame rows at 30 fps.",
+    "Low-motion idle, rest, sit, cry, and sleep actions intentionally keep lower fps timing.",
+    "Intermediate extracted frame directories are local QA scratch data and are not intended for review commits."
+  ]
+}
