@@ -4,114 +4,45 @@
   "description": "A lively chibi desktop pet based on 鹿弈Nui.",
   "spritesheetPath": "spritesheet.webp",
   "grid": {
-    "columns": 8,
-    "rows": 14,
+    "columns": 32,
+    "rows": 22,
     "frameWidth": 192,
     "frameHeight": 208
   },
   "animations": {
-    "idle": { "row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5 },
-    "run_right": { "row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 10 },
-    "run_left": { "row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 12 },
-    "wave": { "row": 3, "frames": [0, 1, 2, 3], "fps": 6 },
-    "jump": { "row": 4, "frames": [0, 1, 2, 3, 4], "fps": 8, "motionY": [0, -18, -34, -18, 0] },
-    "cry": { "row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 },
-    "idle_alt": { "row": 6, "frames": [0, 1, 2, 3, 4, 5], "fps": 4, "loop": false, "next": "idle" },
-    "walk": { "row": 7, "frames": [0, 1, 2, 3, 4, 5], "fps": 7 },
-    "think": { "row": 8, "frames": [0, 1, 2, 3, 3, 3, 4, 5], "fps": 4 },
-    "idle_long": { "row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4, "loop": false, "next": "idle" },
-    "sleep": { "row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 7], "fps": 2, "loop": false, "next": "idle" },
-    "nod": { "row": 11, "frames": [0, 1, 2, 3, 4, 5], "fps": 5, "loop": false, "next": "idle" },
-    "sit": { "row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4 }
+    "idle": {"row": 0, "frames": [0, 1, 2, 3, 4, 5], "fps": 5},
+    "run_right": {"row": 1, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30},
+    "slide_stop_right": {"row": 2, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "run_left": {"row": 3, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30},
+    "slide_stop_left": {"row": 4, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "wave": {"row": 5, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "fps": 12},
+    "jump": {"row": 6, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], "fps": 30, "motionY": [0.0, -3.79, -7.58, -11.37, -15.16, -18.84, -22.21, -25.58, -28.95, -32.32, -32.32, -28.95, -25.58, -22.21, -18.84, -15.16, -11.37, -7.58, -3.79, 0.0]},
+    "diagonal_pounce_right": {"row": 15, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "diagonal_pounce_left": {"row": 16, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "diagonal_pounce_land_right": {"row": 17, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "diagonal_pounce_land_left": {"row": 18, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "loop": false},
+    "fall": {"row": 19, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], "fps": 30},
+    "fall_land": {"row": 20, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], "fps": 30, "loop": false},
+    "fall_getup": {"row": 21, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], "fps": 30, "loop": false},
+    "cry": {"row": 7, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4},
+    "idle_alt": {"row": 8, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5, "loop": false, "next": "idle"},
+    "walk": {"row": 9, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "fps": 30, "motionX": [0.0, -0.43, -0.87, -1.3, -1.74, -2.09, -2.3, -2.52, -2.74, -2.96, -2.83, -2.61, -2.39, -2.17, -1.91, -1.48, -1.04, -0.61, -0.17, 0.13, 0.35, 0.57, 0.78, 1.0]},
+    "think": {"row": 10, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 5},
+    "idle_long": {"row": 11, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4, "loop": false, "next": "idle"},
+    "sleep": {"row": 12, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], "fps": 2, "loop": false, "next": "idle"},
+    "nod": {"row": 13, "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "fps": 12, "loop": false, "next": "idle"},
+    "sit": {"row": 14, "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 4}
   },
-  "actionAliases": {
-    "happy_run": "run_right",
-    "run": "run_left",
-    "idle_sit": "sit",
-    "wake": "idle_alt",
-    "blink": "think",
-    "idle_breathe": "idle_long",
-    "idle_look": "think",
-    "idle_stretch": "nod",
-    "idle_blink": "think",
-    "walk_drag": "run_right"
-  },
-  "menuActions": [
-    { "action": "idle", "label": "待机" },
-    { "action": "wave", "label": "挥手" },
-    { "action": "jump", "label": "跳跃" },
-    { "action": "cry", "label": "哭哭" },
-    { "action": "sleep", "label": "休眠" },
-    { "action": "idle_alt", "label": "待机2" },
-    { "action": "walk", "label": "轻快小跑" },
-    { "action": "think", "label": "思考" },
-    { "action": "nod", "label": "点头" },
-    { "action": "sit", "label": "坐下" }
-  ],
-  "dragActionsByDirection": {
-    "right": "run_right",
-    "left": "run_left"
-  },
+  "actionAliases": {"happy_run": "run_right", "run": "run_left", "idle_sit": "sit", "wake": "idle_alt", "blink": "think", "idle_breathe": "idle_long", "idle_look": "think", "idle_stretch": "nod", "idle_blink": "think", "walk_drag": "run_right"},
+  "menuActions": [{"action": "idle", "label": "待机"}, {"action": "wave", "label": "挥手"}, {"action": "jump", "label": "跳跃"}, {"action": "cry", "label": "哭哭"}, {"action": "sleep", "label": "休眠"}, {"action": "idle_alt", "label": "待机2"}, {"action": "walk", "label": "轻快小跑"}, {"action": "think", "label": "思考"}, {"action": "nod", "label": "点头"}, {"action": "sit", "label": "坐下"}],
+  "dragActionsByDirection": {"right": "run_right", "left": "run_left"},
+  "slideStopActionsByDirection": {"right": "slide_stop_right", "left": "slide_stop_left"},
+  "diagonalPounceActionsByDirection": {"right": "diagonal_pounce_right", "left": "diagonal_pounce_left"},
+  "diagonalPounceLandingActionsByDirection": {"right": "diagonal_pounce_land_right", "left": "diagonal_pounce_land_left"},
   "dragActions": ["run_right", "run_left"],
   "dragAction": "run_right",
   "defaultAction": "idle",
-  "actionNotes": {
-    "run_right": "Drag-only right-facing running variant; renamed from happy_run.",
-    "run_left": "Drag-only left-facing running variant; renamed from run.",
-    "sit": "Generated v0.2.1 replacement row for the missing sitting animation.",
-    "sleep": "Dedicated v0.2.3 prone sleep row with a small attached Z cue and a longer closed-eye hold.",
-    "idle_alt": "Former wake row; visually closer to a second idle action.",
-    "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.",
-    "idle_long": "Former breathe row; retained for compatibility but removed from menu and idle pools.",
-    "nod": "Former stretch row; blank trailing frames removed.",
-    "idle_blink": "Alias to the single retained thinking action."
-  },
-  "animationGroups": {
-    "idleVariants": ["idle_alt", "sleep", "think", "nod", "sit"],
-    "clickReactions": ["wave", "think", "idle_alt"],
-    "doubleClickReactions": ["jump", "nod"]
-  },
-  "bubbleText": {
-    "click": [
-      "在这里。",
-      "不要突然戳呀。",
-      "今天也要开心。",
-      "要一起摸鱼吗？",
-      "Nui 收到。",
-      "你也休息一下吧。",
-      "刚刚那下有点痒。",
-      "我有在认真待机。"
-    ],
-    "doubleClick": [
-      "跳起来啦。",
-      "反应速度很快吧？",
-      "再戳就要晕啦。",
-      "Nui 出击。"
-    ],
-    "dragStart": [
-      "要搬家了吗？",
-      "出发。",
-      "慢一点慢一点。",
-      "我会跟上的。"
-    ],
-    "dragEnd": [
-      "就停在这里？",
-      "到位。",
-      "这里视野不错。",
-      "放下啦。"
-    ],
-    "idle": [
-      "休息一下。",
-      "盯。",
-      "今天也在桌面巡逻。",
-      "稍微发会儿呆。",
-      "待机中。"
-    ],
-    "menu": [
-      "切换好了。",
-      "收到指令。",
-      "换个姿势。",
-      "这样可以吗？"
-    ]
-  }
+  "actionNotes": {"run_right": "Drag-only right-facing running variant; smoothed to 24 frames at 30 fps on row 1.", "run_left": "Drag-only left-facing running variant; smoothed to 24 frames at 30 fps on row 3.", "slide_stop_right": "Physics-only right-facing release animation, split onto row 2 and smoothed to 24 frames at 30 fps for horizontal inertia braking.", "slide_stop_left": "Physics-only left-facing release animation, split onto row 4 and smoothed to 24 frames at 30 fps for horizontal inertia braking.", "diagonal_pounce_right": "Physics-only rightward diagonal release pounce, split onto row 15 and smoothed to 24 frames at 30 fps.", "diagonal_pounce_left": "Physics-only leftward diagonal release pounce, split onto row 16 and smoothed to 24 frames at 30 fps without runtime mirroring.", "diagonal_pounce_land_right": "Physics-only rightward diagonal pounce landing completion, split onto row 17 and smoothed to 24 frames at 30 fps.", "diagonal_pounce_land_left": "Physics-only leftward diagonal pounce landing completion, split onto row 18 and smoothed to 24 frames at 30 fps.", "sit": "Generated v0.2.1 replacement row for the missing sitting animation.", "sleep": "Dedicated v0.2.3 prone sleep row with a small attached Z cue and a longer closed-eye hold.", "fall": "Physics-only airborne falling row, split onto row 19 and smoothed to 32 frames at 30 fps.", "fall_land": "Physics-only impact row, split onto row 20 and smoothed to 32 frames at 30 fps.", "fall_getup": "Physics-only prone-to-standing get-up row, split onto row 21 and smoothed to 32 frames at 30 fps.", "idle_alt": "Former wake row; visually closer to a second idle action.", "walk": "Light jog row smoothed to 24 frames at 30 fps with synchronized motionX offsets.", "think": "Former blink row; visually closer to thinking with a longer closed-eye hold.", "idle_long": "Former breathe row; retained for compatibility but removed from menu and idle pools.", "nod": "Former stretch row; blank trailing frames removed and hand gesture smoothed to 12 frames.", "idle_blink": "Alias to the single retained thinking action."},
+  "animationGroups": {"idleVariants": ["idle_alt", "sleep", "think", "nod", "sit"], "clickReactions": ["wave", "think", "idle_alt"], "doubleClickReactions": ["jump", "nod"]},
+  "bubbleText": {"click": ["在这里。", "不要突然戳呀。", "今天也要开心。", "要一起摸鱼吗？", "Nui 收到。", "你也休息一下吧。", "刚刚那下有点痒。", "我有在认真待机。"], "doubleClick": ["跳起来啦。", "反应速度很快吧？", "再戳就要晕啦。", "Nui 出击。"], "dragStart": ["要搬家了吗？", "出发。", "慢一点慢一点。", "我会跟上的。"], "dragEnd": ["就停在这里？", "到位。", "这里视野不错。", "放下啦。"], "idle": ["休息一下。", "盯。", "今天也在桌面巡逻。", "稍微发会儿呆。", "待机中。"], "menu": ["切换好了。", "收到指令。", "换个姿势。", "这样可以吗？"]}
 }

@@ -37,6 +37,31 @@ function isPositiveInteger(value) {
   return Number.isInteger(value) && value > 0;
 }
 
+function validateMotionTrack(name, animation, hasFrames, key) {
+  let safe = true;
+  if (animation[key] !== undefined) {
+    if (!Array.isArray(animation[key])) {
+      errors.push(`Animation "${name}" ${key} must be an array when defined.`);
+      safe = false;
+    } else if (!hasFrames) {
+      errors.push(`Animation "${name}" ${key} can only be validated after frames are defined.`);
+      safe = false;
+    } else if (animation[key].length !== animation.frames.length) {
+      errors.push(`Animation "${name}" ${key} must match the frame count.`);
+      safe = false;
+    } else {
+      animation[key].forEach((offset) => {
+        if (!Number.isFinite(offset)) {
+          errors.push(`Animation "${name}" ${key} values must be finite numbers.`);
+          safe = false;
+        }
+      });
+    }
+  }
+
+  return safe;
+}
+
 function hasSafeAnimation(name, animation, grid) {
   if (!animation || typeof animation !== "object") {
     errors.push(`Animation "${name}" must be an object.`);
@@ -67,25 +92,8 @@ function hasSafeAnimation(name, animation, grid) {
     safe = false;
   }
 
-  if (animation.motionY !== undefined) {
-    if (!Array.isArray(animation.motionY)) {
-      errors.push(`Animation "${name}" motionY must be an array when defined.`);
-      safe = false;
-    } else if (!hasFrames) {
-      errors.push(`Animation "${name}" motionY can only be validated after frames are defined.`);
-      safe = false;
-    } else if (animation.motionY.length !== animation.frames.length) {
-      errors.push(`Animation "${name}" motionY must match the frame count.`);
-      safe = false;
-    } else {
-      animation.motionY.forEach((offset) => {
-        if (!Number.isFinite(offset)) {
-          errors.push(`Animation "${name}" motionY values must be finite numbers.`);
-          safe = false;
-        }
-      });
-    }
-  }
+  safe = validateMotionTrack(name, animation, hasFrames, "motionX") && safe;
+  safe = validateMotionTrack(name, animation, hasFrames, "motionY") && safe;
 
   return safe;
 }
@@ -186,6 +194,33 @@ if (pet) {
         const action = pet.dragActionsByDirection[direction];
         if (!action || !safeAnimations.has(action)) {
           errors.push(`dragActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
+    if (pet.slideStopActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.slideStopActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`slideStopActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
+    if (pet.diagonalPounceActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.diagonalPounceActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`diagonalPounceActionsByDirection.${direction} references missing or unsafe animation.`);
+        }
+      });
+    }
+
+    if (pet.diagonalPounceLandingActionsByDirection) {
+      ["left", "right"].forEach((direction) => {
+        const action = pet.diagonalPounceLandingActionsByDirection[direction];
+        if (!action || !safeAnimations.has(action)) {
+          errors.push(`diagonalPounceLandingActionsByDirection.${direction} references missing or unsafe animation.`);
         }
       });
     }
